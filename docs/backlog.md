@@ -20,7 +20,7 @@ Ideas y deudas técnicas para más adelante (no bloquean Fase 3 UI).
 ## Pedagogía (Fase 4)
 
 - [x] Canal dual SPEAK / FEEDBACK → TTS limpio + sidebar Coach notes.
-- [ ] Memoria de errores / vocabulario C1 entre sesiones (SQLite).
+- [x] Memoria de errores / vocabulario C1 entre sesiones (SQLite `data/elevate.db` + `/api/memory`).
 - [ ] Shadowing “Escucha y Repite”.
 
 ## Producto / UI

@@ -77,10 +77,10 @@ export function AppLayout() {
 
   const handleStart = useCallback(async () => {
     setSessionStarted(true)
-    ws.connect()
+    ws.connect({ scenario })
     await mic.start()
     ws.setOrbState('listening')
-  }, [ws, mic])
+  }, [ws, mic, scenario])
 
   const handleInterrupt = useCallback(() => {
     playback.stop()

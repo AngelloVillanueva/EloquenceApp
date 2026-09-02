@@ -27,7 +27,7 @@ interface UseWebSocketReturn {
   transcript: TranscriptLine[]
   feedback: FeedbackPayload | null
   ttfa: number | null
-  connect: () => void
+  connect: (config?: { scenario?: string }) => void
   disconnect: () => void
   sendEndTurn: () => void
   sendCancel: () => void
@@ -91,7 +91,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     }
   }, [])
 
-  const connect = useCallback(() => {
+  const connect = useCallback((config?: { scenario?: string }) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     setStatus('connecting')
     setTranscript([])
@@ -102,7 +102,11 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     ws.binaryType = 'arraybuffer'
     ws.onopen = () => {
       setStatus('connected')
-      ws.send(JSON.stringify({ type: 'CONFIG', sample_rate: 16000 }))
+      ws.send(JSON.stringify({
+        type: 'CONFIG',
+        sample_rate: 16000,
+        scenario: config?.scenario ?? 'free',
+      }))
     }
     ws.onmessage = handleMessage
     ws.onclose = () => {

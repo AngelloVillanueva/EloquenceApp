@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import __version__
 from app.config import get_settings
+from app.services.memory import get_memory
 from app.services.runtime import get_runtime
 from app.utils.cuda_bootstrap import bootstrap_cuda_dlls
 from app.ws.handler import audio_websocket
@@ -92,8 +93,7 @@ def create_app() -> FastAPI:
             "device": settings.device,
             "whisper_model": settings.whisper_model_size,
             "ollama_model": settings.ollama_model,
-            "tts_engine": settings.tts_engine,
-            "phase": 2,
+            "phase": 4,
             "runtime_loaded": status.loaded,
             "runtime_tts": status.tts_engine,
             "runtime_ollama": status.ollama_model,
@@ -101,14 +101,16 @@ def create_app() -> FastAPI:
             "ollama_num_ctx": settings.ollama_num_ctx,
             "runtime_error": status.load_error,
             "ws": "/ws/audio",
+            "memory": "/api/memory",
         }
 
     @app.get("/api/config")
     def public_config() -> dict[str, Any]:
         return {
             "app_name": settings.app_name,
-            "phase": 2,
+            "phase": 4,
             "ws_audio": "/ws/audio",
+            "memory": "/api/memory",
             "target_pipeline_latency_s": settings.target_pipeline_latency_s,
             "capture_sample_rate": 16000,
             "ollama": {
@@ -131,6 +133,7 @@ def create_app() -> FastAPI:
                     "TRANSCRIPT",
                     "TOKEN",
                     "SENTENCE",
+                    "FEEDBACK",
                     "AUDIO_META",
                     "TURN_DONE",
                     "CANCELLED",
@@ -139,6 +142,12 @@ def create_app() -> FastAPI:
                 ],
             },
         }
+
+    @app.get("/api/memory")
+    def memory_snapshot() -> dict[str, Any]:
+        mem = get_memory()
+        user_id = mem.ensure_default_user()
+        return mem.snapshot(user_id)
 
     @app.websocket("/ws/audio")
     async def ws_audio(websocket: WebSocket) -> None:

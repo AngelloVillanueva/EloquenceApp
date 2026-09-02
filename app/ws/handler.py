@@ -12,6 +12,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
 from app.prompts.tutor_system import SPOKEN_TUTOR_PROMPT
+from app.services.memory import MemoryService, get_memory
 from app.services.runtime import AppRuntime, get_runtime
 from app.ws.audio_utils import pcm16_bytes_to_float32
 from app.ws.dual_channel import DualChannelSplitter, spoken_only_from_full
@@ -41,6 +42,12 @@ class AudioWsSession:
         self._turn_task: asyncio.Task[None] | None = None
         # Multi-turn context for Ollama (user/assistant only; system is added by LLM client).
         self.history: list[dict[str, str]] = []
+        self.memory: MemoryService = get_memory()
+        self.user_id: int = self.memory.ensure_default_user()
+        self.session_id: int | None = None
+        self.scenario: str = "free"
+        self.ttfa_samples: list[float] = []
+        self._system_prompt: str = SPOKEN_TUTOR_PROMPT
 
     async def run(self) -> None:
         await self.ws.accept()
@@ -81,6 +88,15 @@ class AudioWsSession:
             await self.safe_send_json(msg(ServerEvent.ERROR, message=str(exc)))
         finally:
             await self._cancel_turn(reason="session_close")
+            avg = (
+                sum(self.ttfa_samples) / len(self.ttfa_samples)
+                if self.ttfa_samples
+                else None
+            )
+            try:
+                self.memory.end_session(self.session_id, ttfa_avg=avg)
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to close SQLite session")
 
     async def on_audio_bytes(self, data: bytes) -> None:
         if self.state in (
@@ -111,8 +127,26 @@ class AudioWsSession:
             sr = int(payload.get("sample_rate", self.sample_rate))
             if sr > 0:
                 self.sample_rate = sr
+            scenario = str(payload.get("scenario") or self.scenario).strip() or "free"
+            self.scenario = scenario
+            if self.session_id is None:
+                self.session_id = self.memory.start_session(
+                    user_id=self.user_id, scenario=scenario
+                )
+                brief = self.memory.build_brief(self.user_id, scenario=scenario)
+                self._system_prompt = (
+                    f"{SPOKEN_TUTOR_PROMPT}\n\n"
+                    f"[MEMORY BRIEF — do not read aloud]\n{brief}\n"
+                )
+                logger.info("SQLite session %s scenario=%s\n%s", self.session_id, scenario, brief)
             await self.send_json(
-                msg(ServerEvent.READY, capture_sample_rate=self.sample_rate, updated=True)
+                msg(
+                    ServerEvent.READY,
+                    capture_sample_rate=self.sample_rate,
+                    updated=True,
+                    scenario=self.scenario,
+                    session_id=self.session_id,
+                )
             )
             return
 
@@ -221,7 +255,7 @@ class AudioWsSession:
 
                 async for delta in self.runtime.llm.chat_stream_async(
                     stt_result.text,
-                    system=SPOKEN_TUTOR_PROMPT,
+                    system=self._system_prompt,
                     cancel_event=self.cancel_event,
                     history=list(self.history),
                 ):
@@ -274,12 +308,25 @@ class AudioWsSession:
                         msg(ServerEvent.FEEDBACK, feedback=feedback)
                     )
 
-                # Persist spoken-only text into rolling session memory.
+                # Persist spoken-only text into rolling session memory + SQLite.
                 if reply_text and not self.cancel_event.is_set():
                     self.history.append({"role": "user", "content": stt_result.text})
                     self.history.append({"role": "assistant", "content": reply_text})
                     if len(self.history) > _MAX_HISTORY_MESSAGES:
                         self.history = self.history[-_MAX_HISTORY_MESSAGES:]
+                    ttfa = timings.get("time_to_first_audio_s")
+                    if isinstance(ttfa, (int, float)):
+                        self.ttfa_samples.append(float(ttfa))
+                    try:
+                        self.memory.record_turn(
+                            user_id=self.user_id,
+                            session_id=self.session_id,
+                            user_text=stt_result.text,
+                            assistant_text=reply_text,
+                            feedback=feedback,
+                        )
+                    except Exception:  # noqa: BLE001
+                        logger.exception("SQLite record_turn failed")
                     logger.info(
                         "Session history: %d messages (~%d turns)",
                         len(self.history),

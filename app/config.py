@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     # --- Latency target (Phase 1 validation) ---
     target_pipeline_latency_s: float = 2.0
 
+    # --- Persistent memory (app-owned SQLite; LLM never runs SQL) ---
+    sqlite_path: Path = DATA_DIR / "elevate.db"
+
 
 @lru_cache
 def get_settings() -> Settings:
