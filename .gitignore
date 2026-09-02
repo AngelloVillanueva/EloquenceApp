@@ -1,0 +1,45 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env / secrets
+.env
+.env.local
+
+# Local models & runtime artifacts (too large for Git)
+models/**
+!models/.gitkeep
+data/output/**
+!data/output/.gitkeep
+data/samples/*.wav
+!data/samples/.gitkeep
+*.db
+data/*.db
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs / weights
+*.log
+*.pt
+*.bin
+*.onnx

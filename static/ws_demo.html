@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <title>Elevate AI — Phase 2 WS Demo</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a222c;
+      --text: #e7eef7;
+      --muted: #8b9bb0;
+      --accent: #3d9cf0;
+      --danger: #e85d5d;
+      --ok: #3ecf8e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, #1b2a3d, var(--bg));
+      color: var(--text);
+      padding: 2rem;
+    }
+    h1 { font-weight: 650; letter-spacing: -0.02em; margin: 0 0 0.35rem; }
+    .sub { color: var(--muted); margin-bottom: 1.5rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 0.75rem 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: #041018;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.danger { background: var(--danger); color: #fff; }
+    button.ghost { background: #2a3542; color: var(--text); }
+    .panel {
+      background: color-mix(in srgb, var(--panel) 92%, black);
+      border: 1px solid #2c3a4a;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    #state {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: #243041;
+      color: var(--ok);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    #log, #transcript {
+      white-space: pre-wrap;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      max-height: 280px;
+      overflow: auto;
+      color: #c9d6e5;
+    }
+    .chip { color: var(--muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>Elevate AI — Demo WebSocket</h1>
+  <p class="sub">Fase 2 · PCM 16 kHz → STT → LLM stream → TTS por oraciones · barge-in</p>
+
+  <div class="row">
+    <button id="btnConnect">Conectar</button>
+    <button id="btnRec" class="ghost" disabled>Grabar turno</button>
+    <button id="btnStop" disabled>Enviar END_TURN</button>
+    <button id="btnCancel" class="danger" disabled>Interrupt (CANCEL_AUDIO)</button>
+  </div>
+
+  <div class="panel">
+    <div>Estado: <span id="state">disconnected</span>
+      <span class="chip" id="meta"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <strong>Transcript</strong>
+    <div id="transcript"></div>
+  </div>
+
+  <div class="panel">
+    <strong>Event log</strong>
+    <div id="log"></div>
+  </div>
+
+  <script>
+    const SAMPLE_RATE = 16000;
+    const stateEl = document.getElementById("state");
+    const metaEl = document.getElementById("meta");
+    const logEl = document.getElementById("log");
+    const transcriptEl = document.getElementById("transcript");
+    const btnConnect = document.getElementById("btnConnect");
+    const btnRec = document.getElementById("btnRec");
+    const btnStop = document.getElementById("btnStop");
+    const btnCancel = document.getElementById("btnCancel");
+
+    let ws = null;
+    let audioCtx = null;
+    let mediaStream = null;
+    let processor = null;
+    let source = null;
+    let recording = false;
+    let playbackCtx = null;
+    let nextPlayTime = 0;
+    let currentSr = 24000;
+    let playSources = [];
+
+    function log(line) {
+      logEl.textContent += line + "\n";
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setState(s) {
+      stateEl.textContent = s;
+    }
+
+    function wsUrl() {
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      return `${proto}://${location.host}/ws/audio`;
+    }
+
+    // If this never appears, the browser is still serving a cached broken page.
+    log("JS OK v2 — pulsa Conectar");
+
+    function floatTo16BitPCM(float32Array) {
+      const buffer = new ArrayBuffer(float32Array.length * 2);
+      const view = new DataView(buffer);
+      for (let i = 0; i < float32Array.length; i++) {
+        let s = Math.max(-1, Math.min(1, float32Array[i]));
+        view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      }
+      return buffer;
+    }
+
+    function downsampleTo16k(input, inRate) {
+      if (inRate === SAMPLE_RATE) return input;
+      const ratio = inRate / SAMPLE_RATE;
+      const outLen = Math.floor(input.length / ratio);
+      const out = new Float32Array(outLen);
+      for (let i = 0; i < outLen; i++) {
+        out[i] = input[Math.floor(i * ratio)];
+      }
+      return out;
+    }
+
+    async function ensurePlaybackCtx(sampleRate) {
+      if (!playbackCtx || playbackCtx.sampleRate !== sampleRate) {
+        if (playbackCtx) await playbackCtx.close().catch(() => {});
+        playbackCtx = new AudioContext({ sampleRate });
+        nextPlayTime = 0;
+      }
+      if (playbackCtx.state === "suspended") await playbackCtx.resume();
+      currentSr = sampleRate;
+    }
+
+    function stopPlayback() {
+      for (const s of playSources) {
+        try { s.stop(); } catch (_) {}
+      }
+      playSources = [];
+      nextPlayTime = playbackCtx ? playbackCtx.currentTime : 0;
+    }
+
+    async function enqueuePcm16(arrayBuffer, sampleRate) {
+      await ensurePlaybackCtx(sampleRate);
+      const int16 = new Int16Array(arrayBuffer);
+      const float32 = new Float32Array(int16.length);
+      for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768;
+      const buf = playbackCtx.createBuffer(1, float32.length, sampleRate);
+      buf.copyToChannel(float32, 0);
+      const src = playbackCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(playbackCtx.destination);
+      const startAt = Math.max(playbackCtx.currentTime + 0.02, nextPlayTime);
+      src.start(startAt);
+      nextPlayTime = startAt + buf.duration;
+      playSources.push(src);
+      src.onended = () => {
+        playSources = playSources.filter((x) => x !== src);
+      };
+    }
+
+    btnConnect.addEventListener("click", () => {
+      log("click Conectar");
+      if (ws && ws.readyState <= 1) {
+        ws.close();
+        return;
+      }
+      const url = wsUrl();
+      try {
+        ws = new WebSocket(url);
+      } catch (err) {
+        log("WebSocket create error: " + err);
+        setState("error");
+        return;
+      }
+      ws.binaryType = "arraybuffer";
+      setState("connecting");
+      log("→ connecting " + url);
+
+      ws.onopen = () => {
+        setState("connected");
+        btnRec.disabled = false;
+        btnCancel.disabled = false;
+        btnConnect.textContent = "Desconectar";
+        ws.send(JSON.stringify({ type: "CONFIG", sample_rate: SAMPLE_RATE }));
+        log("← open");
+      };
+
+      ws.onclose = (ev) => {
+        setState("disconnected");
+        btnRec.disabled = true;
+        btnStop.disabled = true;
+        btnCancel.disabled = true;
+        btnConnect.textContent = "Conectar";
+        stopRec();
+        log("← close code=" + ev.code + " reason=" + (ev.reason || ""));
+      };
+
+      ws.onerror = () => {
+        log("← error (mira Network → WS en F12)");
+        setState("error");
+      };
+
+      ws.onmessage = async (ev) => {
+        if (typeof ev.data !== "string") {
+          await enqueuePcm16(ev.data, currentSr);
+          return;
+        }
+        const msg = JSON.parse(ev.data);
+        log("← " + JSON.stringify(msg));
+        if (msg.type === "STATE") setState(msg.state);
+        if (msg.type === "READY") {
+          metaEl.textContent = ` · ollama=${msg.ollama_model || "?"} · tts=${msg.tts_engine || "?"}`;
+        }
+        if (msg.type === "AUDIO_META") {
+          currentSr = msg.sample_rate || currentSr;
+        }
+        if (msg.type === "TRANSCRIPT") {
+          transcriptEl.textContent += `[${msg.role}] ${msg.text}\n`;
+        }
+        if (msg.type === "CANCELLED") {
+          stopPlayback();
+        }
+        if (msg.type === "TURN_DONE" && msg.timings) {
+          metaEl.textContent = ` · TTFA=${msg.timings.time_to_first_audio_s}s · total=${msg.timings.total_s}s`;
+        }
+      };
+    });
+
+    async function startRec() {
+      audioCtx = new AudioContext();
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      source = audioCtx.createMediaStreamSource(mediaStream);
+      processor = audioCtx.createScriptProcessor(4096, 1, 1);
+      processor.onaudioprocess = (e) => {
+        if (!recording || !ws || ws.readyState !== 1) return;
+        const input = e.inputBuffer.getChannelData(0);
+        const down = downsampleTo16k(input, audioCtx.sampleRate);
+        ws.send(floatTo16BitPCM(down));
+      };
+      source.connect(processor);
+      processor.connect(audioCtx.destination);
+      recording = true;
+      btnRec.disabled = true;
+      btnStop.disabled = false;
+      setState("listening");
+      log("→ recording PCM16 @" + SAMPLE_RATE);
+    }
+
+    function stopRec() {
+      recording = false;
+      if (processor) { processor.disconnect(); processor = null; }
+      if (source) { source.disconnect(); source = null; }
+      if (mediaStream) {
+        mediaStream.getTracks().forEach((t) => t.stop());
+        mediaStream = null;
+      }
+      if (audioCtx) { audioCtx.close(); audioCtx = null; }
+      btnRec.disabled = !(ws && ws.readyState === 1);
+      btnStop.disabled = true;
+    }
+
+    btnRec.onclick = () => startRec().catch((err) => {
+      log("mic error: " + err);
+      alert(err);
+    });
+
+    btnStop.onclick = () => {
+      stopRec();
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: "END_TURN" }));
+        log("→ END_TURN");
+      }
+    };
+
+    btnCancel.onclick = () => {
+      stopPlayback();
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: "CANCEL_AUDIO" }));
+        log("→ CANCEL_AUDIO");
+      }
+    };
+  </script>
+</body>
+</html>

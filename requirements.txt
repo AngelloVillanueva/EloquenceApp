@@ -1,0 +1,30 @@
+# Elevate AI — Local English Tutor (Phase 1)
+# Python 3.11 or 3.12 required (3.14 is NOT supported by torch/ctranslate2 yet)
+
+# --- Web / app ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic-settings>=2.6.0
+httpx>=0.27.0
+python-dotenv>=1.0.1
+numpy>=1.26.0
+soundfile>=0.12.1
+
+# --- STT ---
+faster-whisper>=1.1.0
+
+# --- TTS ---
+# Prefer Kokoro; Piper is the lightweight fallback.
+kokoro-onnx>=0.4.0
+piper-tts>=1.2.0
+
+# onnxruntime-gpu is installed separately in setup (see README) to avoid
+# conflict with the CPU onnxruntime pulled by some packages.
+# Pin 1.20.x for CUDA 12.x (matches torch cu124). ORT 1.29+ wants CUDA 13.
+#   pip uninstall -y onnxruntime onnxruntime-gpu
+#   pip install "onnxruntime-gpu==1.20.2"
+
+# --- Tests ---
+pytest>=8.0.0
+# Install torch with CUDA wheels AFTER requirements, e.g. CUDA 12.4:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124

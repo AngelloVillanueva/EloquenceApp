@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────── Design Tokens ─────────────── */
+:root {
+  --bg:             #0D0B09;
+  --bg-elevated:    #131109;
+  --surface:        #1A1714;
+  --surface-high:   #221E19;
+  --surface-hover:  #2A251F;
+
+  --text:           #F2EDE5;
+  --text-muted:     #9C9288;
+  --text-subtle:    #5A5450;
+
+  --accent:         #D4A460;      /* ámbar dorado */
+  --accent-bright:  #F0BC6E;      /* neon hover */
+  --accent-warm:    #B8894A;
+  --accent-glow:    rgba(212, 164, 96, 0.18);
+  --accent-neon:    rgba(240, 188, 110, 0.45);
+
+  --teal:           #3AADA8;      /* segundo acento — tech/global */
+  --teal-dim:       rgba(58, 173, 168, 0.2);
+
+  --interrupt:      #B85A48;
+  --interrupt-dim:  rgba(184, 90, 72, 0.5);
+
+  --orb-core-idle:  #201D19;
+  --orb-glow-listen: rgba(212, 164, 96, 0.45);
+  --orb-glow-speak:  rgba(240, 200, 140, 0.6);
+
+  --border:         rgba(242, 237, 229, 0.08);
+  --border-accent:  rgba(212, 164, 96, 0.3);
+  --blur-glass:     rgba(13, 11, 9, 0.72);
+
+  --sidebar-w:      224px;
+  --topbar-h:       52px;
+}
+
+/* ─────────────── Base ─────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ─────────────── Scrollbar ─────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-high); border-radius: 2px; }
+
+/* ─────────────── Glass morphism ─────────────── */
+.glass {
+  background: var(--blur-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+}
+
+/* ─────────────── Neon glow utilities ─────────────── */
+.neon-text {
+  text-shadow:
+    0 0 8px  var(--accent-neon),
+    0 0 20px rgba(212, 164, 96, 0.2);
+}
+.neon-border {
+  box-shadow:
+    0 0 0 1px var(--border-accent),
+    0 0 14px var(--accent-glow),
+    inset 0 0 8px rgba(212, 164, 96, 0.04);
+}
+.neon-teal {
+  box-shadow: 0 0 10px var(--teal-dim), 0 0 0 1px rgba(58,173,168,0.25);
+}
+
+/* ─────────────── Gradient accent line ─────────────── */
+.accent-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.4;
+}
+
+/* ─────────────── Animations ─────────────── */
+@keyframes orb-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1);    }
+  50%       { opacity: 1;   transform: scale(1.06); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+@keyframes sidebar-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0);     }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.animate-fade-in     { animation: fade-in     0.3s ease forwards; }
+.animate-slide-up    { animation: slide-up    0.35s ease forwards; }
+.animate-sidebar-in  { animation: sidebar-in  0.28s cubic-bezier(0.22,1,0.36,1) forwards; }
+
+/* ─────────────── Mobile responsive ─────────────── */
+@media (max-width: 640px) {
+  html, body, #root { overflow: auto; }
+}
