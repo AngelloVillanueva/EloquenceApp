@@ -30,6 +30,9 @@ data/*.db
 frontend/node_modules/
 frontend/dist/
 
+# Nested clone of the GitHub repo (do not commit)
+ElevateAIApp/
+
 # IDE / OS
 .idea/
 .vscode/
