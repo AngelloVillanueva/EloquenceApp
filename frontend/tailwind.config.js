@@ -17,8 +17,9 @@ export default {
         border: 'rgba(242,237,229,0.07)',
       },
       fontFamily: {
-        brand: ['Syne', 'system-ui', 'sans-serif'],
-        ui: ['Inter', 'system-ui', 'sans-serif'],
+        brand: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        ui: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        display: ['Noto Serif', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'Consolas', 'monospace'],
       },
       borderRadius: {

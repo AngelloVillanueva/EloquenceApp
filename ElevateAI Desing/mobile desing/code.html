@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Noto+Serif:wght@600&amp;family=Plus+Jakarta+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "inverse-primary": "#85532e", "primary-fixed": "#ffdcc6", "secondary-fixed": "#ffdad5", "tertiary": "#d4d1cb", "secondary": "#ffb4a9", "tertiary-container": "#b8b6b0", "tertiary-fixed-dim": "#c9c6c0", "on-tertiary": "#31312c", "error": "#ffb4ab", "on-primary-container": "#693c19", "secondary-fixed-dim": "#ffb4a9", "on-tertiary-fixed": "#1c1c18", "on-secondary-fixed-variant": "#8b1913", "surface-tint": "#fbb88b", "on-primary-fixed-variant": "#693c19", "on-secondary-container": "#ff9a8c", "on-secondary-fixed": "#410001", "on-primary": "#4e2604", "surface-variant": "#373432", "surface": "#151311", "tertiary-fixed": "#e5e2db", "surface-container-high": "#2c2927", "surface-container": "#221f1d", "on-primary-fixed": "#301400", "on-secondary": "#690002", "inverse-on-surface": "#33302d", "on-background": "#e8e1dd", "surface-container-low": "#1d1b19", "error-container": "#93000a", "primary": "#ffc69f", "surface-container-lowest": "#100e0c", "on-tertiary-container": "#484743", "primary-fixed-dim": "#fbb88b", "on-error-container": "#ffdad6", "on-error": "#690005", "primary-container": "#e8a87c", "surface-bright": "#3c3936", "secondary-container": "#8b1913", "surface-container-highest": "#373432", "on-tertiary-fixed-variant": "#474742", "outline": "#9e8d83", "on-surface-variant": "#d6c3b8", "background": "#151311", "on-surface": "#e8e1dd", "surface-dim": "#151311", "outline-variant": "#51443c", "inverse-surface": "#e8e1dd" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "container-max": "1200px", "sm": "8px", "gutter": "24px", "unit": "4px", "xl": "40px", "lg": "24px", "margin-mobile": "16px", "md": "16px", "xs": "4px" }, "fontFamily": { "display-lg": ["Noto Serif"], "telemetry": ["JetBrains Mono"], "body-md": ["Plus Jakarta Sans"], "label-caps": ["JetBrains Mono"], "body-lg": ["Plus Jakarta Sans"], "headline-md-mobile": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"] }, "fontSize": { "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }], "telemetry": ["11px", { "lineHeight": "1.4", "fontWeight": "400" }], "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }], "label-caps": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500" }], "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }], "headline-md-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }], "headline-md": ["32px", { "lineHeight": "1.3", "fontWeight": "600" }] } } } };</script><style>@layer base { body { background-color: #12100E; background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png"); background-repeat: repeat; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } } ::-webkit-scrollbar { display: none; }</style></head><body class="min-h-screen text-on-surface selection:bg-primary/30"><header class="fixed top-0 inset-x-0 z-50 bg-surface/60 backdrop-blur-xl pt-safe"><div class="h-16 px-margin-mobile flex items-center justify-between"><div class="flex items-center gap-sm"><div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div><span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest uppercase">Active Session</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative w-full pt-16 pb-32"><div class="flex flex-col w-full h-full relative overflow-hidden bg-[#12100E] justify-between pb-safe pt-safe" style="min-height: calc(100vh - 128px); background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');">
+<!-- Top Action / Status (Optional, keeping minimal) -->
+<div class="flex justify-between items-center px-6 pt-6 z-10">
+<div class="flex items-center gap-2 bg-[#1A1714]/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#2A241F]">
+<div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+<span class="font-telemetry text-[10px] text-primary uppercase tracking-widest">Live Connection</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-[#1A1714]/60 backdrop-blur-md border border-[#2A241F] text-on-surface-variant transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<!-- Centerpiece: Voice Orb Area -->
+<div class="flex-1 flex flex-col items-center justify-center relative z-0 mt-8">
+<!-- Ambient Glow Behind Orb -->
+<div class="absolute w-64 h-64 rounded-full bg-primary/10 blur-3xl animate-pulse" style="animation-duration: 4s;"></div>
+<!-- Voice Orb Container -->
+<div class="relative w-48 h-48 flex items-center justify-center group cursor-pointer transition-transform duration-500 ease-out hover:scale-105 active:scale-95" id="orb-container">
+<!-- Outer Ring -->
+<svg class="absolute inset-0 w-full h-full text-primary/20 animate-spin-slow" style="animation-duration: 20s;" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="48" stroke="currentColor" stroke-dasharray="2 4" stroke-width="0.5"></circle>
+</svg>
+<!-- Mid Ring -->
+<svg class="absolute inset-2 w-44 h-44 text-primary/40 animate-reverse-spin-slow" style="animation-duration: 15s;" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="46" stroke="currentColor" stroke-dasharray="10 20" stroke-width="1"></circle>
+</svg>
+<!-- Core Orb (Animated SVG representing 3D Mesh) -->
+<svg class="w-32 h-32 text-primary drop-shadow-[0_0_15px_rgba(232,168,124,0.6)]" id="core-orb" viewbox="0 0 100 100">
+<defs>
+<radialgradient cx="50%" cy="50%" id="orbGlow" r="50%">
+<stop offset="0%" stop-color="#FFDCC6" stop-opacity="1"></stop>
+<stop offset="60%" stop-color="#E8A87C" stop-opacity="0.8"></stop>
+<stop offset="100%" stop-color="#85532E" stop-opacity="0.2"></stop>
+</radialgradient>
+<filter id="blurFilter">
+<fegaussianblur in="SourceGraphic" stddeviation="2"></fegaussianblur>
+</filter>
+</defs>
+<circle cx="50" cy="50" fill="url(#orbGlow)" r="40"></circle>
+<!-- Mesh Lines overlay -->
+<g fill="none" stroke="#FFF" stroke-opacity="0.3" stroke-width="0.3">
+<ellipse cx="50" cy="50" rx="40" ry="15" transform="rotate(30 50 50)"></ellipse>
+<ellipse cx="50" cy="50" rx="40" ry="15" transform="rotate(90 50 50)"></ellipse>
+<ellipse cx="50" cy="50" rx="40" ry="15" transform="rotate(150 50 50)"></ellipse>
+</g>
+<!-- Central pulsing core -->
+<circle cx="50" cy="50" fill="#FFF" filter="url(#blurFilter)" opacity="0.8" r="10">
+<animate attributename="r" dur="2s" repeatcount="indefinite" values="8; 12; 8"></animate>
+<animate attributename="opacity" dur="2s" repeatcount="indefinite" values="0.6; 1; 0.6"></animate>
+</circle>
+</svg>
+</div>
+<!-- Start Session Pill -->
+<button class="mt-12 bg-primary text-[#12100E] font-label-caps text-[12px] uppercase tracking-widest px-8 py-3 rounded-full transition-transform active:scale-95 shadow-[0_4px_14px_0_rgba(232,168,124,0.39)] hover:shadow-[0_6px_20px_rgba(232,168,124,0.23)] hover:-translate-y-0.5" id="start-btn">
+            Start Session
+        </button>
+</div>
+<!-- Transcript / Status Card at Bottom -->
+<div class="px-4 pb-6 z-10 w-full mb-4 mt-auto">
+<div class="bg-[#1A1714]/60 backdrop-blur-md rounded-2xl border border-[#2A241F] p-5 shadow-lg relative overflow-hidden">
+<!-- Subtle inner top highlight -->
+<div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#F5F2EB]/10 to-transparent"></div>
+<div class="flex flex-col gap-4">
+<!-- User Message -->
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center shrink-0 border border-[#2A241F]">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">person</span>
+</div>
+<div>
+<p class="font-body-sm text-[11px] text-on-surface-variant mb-1 font-medium">You</p>
+<p class="font-body-md text-on-surface leading-relaxed text-sm">Ready to start.</p>
+</div>
+</div>
+<!-- AI Message -->
+<div class="flex items-start gap-3">
+<div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">graphic_eq</span>
+</div>
+<div>
+<p class="font-body-sm text-[11px] text-primary mb-1 font-medium flex items-center gap-2">
+                            Elevate 
+                            <span class="flex gap-0.5">
+<span class="w-1 h-1 bg-primary rounded-full animate-bounce" style="animation-delay: 0ms;"></span>
+<span class="w-1 h-1 bg-primary rounded-full animate-bounce" style="animation-delay: 150ms;"></span>
+<span class="w-1 h-1 bg-primary rounded-full animate-bounce" style="animation-delay: 300ms;"></span>
+</span>
+</p>
+<p class="font-body-md text-on-surface leading-relaxed text-sm">Welcome back. Let's pick up where we left off.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    // Micro-interactions for the orb and button
+    document.addEventListener('DOMContentLoaded', () => {
+        const startBtn = document.getElementById('start-btn');
+        const orbContainer = document.getElementById('orb-container');
+        const coreOrb = document.getElementById('core-orb');
+        let isSessionActive = false;
+
+        startBtn.addEventListener('click', () => {
+            isSessionActive = !isSessionActive;
+            
+            if (isSessionActive) {
+                // Change button state
+                startBtn.textContent = 'Listening...';
+                startBtn.classList.replace('bg-primary', 'bg-[#E85D4E]');
+                startBtn.classList.replace('text-[#12100E]', 'text-white');
+                startBtn.classList.replace('shadow-[0_4px_14px_0_rgba(232,168,124,0.39)]', 'shadow-[0_4px_14px_0_rgba(232,93,78,0.39)]');
+                
+                // Animate orb more vigorously
+                coreOrb.style.transform = 'scale(1.1)';
+                coreOrb.style.transition = 'transform 0.3s ease-out';
+                
+                // Add a pulsating effect to the container
+                orbContainer.classList.add('animate-pulse');
+                
+            } else {
+                // Reset to start state
+                startBtn.textContent = 'Start Session';
+                startBtn.classList.replace('bg-[#E85D4E]', 'bg-primary');
+                startBtn.classList.replace('text-white', 'text-[#12100E]');
+                startBtn.classList.replace('shadow-[0_4px_14px_0_rgba(232,93,78,0.39)]', 'shadow-[0_4px_14px_0_rgba(232,168,124,0.39)]');
+                
+                // Reset orb
+                coreOrb.style.transform = 'scale(1)';
+                orbContainer.classList.remove('animate-pulse');
+            }
+        });
+
+        // Simple mouse tracking for a subtle parallax effect on the orb (desktop only, but good for touch on mobile if implemented carefully)
+        // Kept simple for robust mobile experience
+    });
+</script>
+<style>
+    /* Adding a few custom animations to supplement Tailwind's defaults */
+    @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    @keyframes reverse-spin-slow {
+        from { transform: rotate(360deg); }
+        to { transform: rotate(0deg); }
+    }
+    .animate-spin-slow {
+        animation: spin-slow linear infinite;
+    }
+    .animate-reverse-spin-slow {
+        animation: reverse-spin-slow linear infinite;
+    }
+</style></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-low/80 backdrop-blur-2xl shadow-[0_-1px_12px_rgba(0,0,0,0.2)]" data-active-classes="text-primary"><div class="flex justify-around items-center h-20 px-4"><a class="flex flex-col items-center justify-center gap-1 w-16 h-16 text-on-surface-variant transition-colors" data-path="session" href="#"><span class="material-symbols-outlined">graphic_eq</span><span class="font-label-caps text-[10px] uppercase tracking-tighter">Speak</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-16 text-on-surface-variant transition-colors" data-path="curriculum" href="#"><span class="material-symbols-outlined">import_contacts</span><span class="font-label-caps text-[10px] uppercase tracking-tighter">Learn</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-16 text-on-surface-variant transition-colors" data-path="history" href="#"><span class="material-symbols-outlined">history_edu</span><span class="font-label-caps text-[10px] uppercase tracking-tighter">Recap</span></a></div></nav></body></html>

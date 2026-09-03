@@ -1,18 +1,24 @@
 export function BrandMark() {
   return (
-    <div className="flex items-baseline gap-1.5 select-none">
+    <div className="flex items-baseline gap-1 select-none">
       <span
-        style={{ fontFamily: 'Syne, system-ui', fontWeight: 700, fontSize: 17, color: 'var(--text)' }}
+        style={{
+          fontFamily: 'var(--font-brand)',
+          fontWeight: 600,
+          fontSize: 22,
+          letterSpacing: '-0.02em',
+          color: 'var(--text)',
+        }}
       >
         Elevate
       </span>
       <span
         style={{
-          fontFamily: 'Syne, system-ui',
-          fontWeight: 400,
-          fontSize: 12,
+          fontFamily: 'var(--font-brand)',
+          fontWeight: 600,
+          fontSize: 22,
+          letterSpacing: '-0.02em',
           color: 'var(--accent)',
-          letterSpacing: '0.04em',
         }}
       >
         AI

@@ -12,7 +12,7 @@ Ideas y deudas técnicas para más adelante (no bloquean Fase 3 UI).
 ## UX voz
 
 - [x] AudioWorklet captura PCM (frontend).
-- [x] VAD energía cliente → `END_TURN` automático (~750 ms silencio). Silero WASM = mejora futura.
+- [x] VAD energía cliente → `END_TURN` automático (~1500 ms silencio). Silero WASM = mejora futura.
 - [ ] Cue sutil al detectar fin de habla.
 - [x] Atajos: Space/Esc = Interrupt.
 - [ ] Atajo M = mute.

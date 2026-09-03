@@ -6,7 +6,7 @@ const TARGET_RATE = 16000
 /** RMS above this ≈ speech (calibrated for typical laptop mics). */
 const SPEECH_RMS = 0.018
 /** Silence must last this long after speech before END_TURN. */
-const SILENCE_MS = 750
+const SILENCE_MS = 1500
 /** Ignore tiny blips — require this much speech before arming VAD. */
 const MIN_SPEECH_MS = 450
 

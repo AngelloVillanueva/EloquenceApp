@@ -5,34 +5,21 @@ interface Props {
 export function TtfaBadge({ ttfa }: Props) {
   if (ttfa === null) return null
 
-  const color = ttfa < 2.0 ? '#6FCF97' : ttfa < 3.0 ? 'var(--accent)' : '#E05B4A'
+  const color = ttfa < 2.0 ? '#6FCF97' : ttfa < 3.0 ? 'var(--accent)' : 'var(--interrupt-hot)'
 
   return (
-    <div
+    <span
+      title="Time to First Audio"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '3px 10px',
-        borderRadius: 'var(--radius-full)',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 13,
+        letterSpacing: '0.06em',
+        color: 'var(--text-subtle)',
+        opacity: 0.75,
       }}
-      title="Time to First Audio — latencia pipeline completo"
     >
-      <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-        TTFA
-      </span>
-      <span
-        style={{
-          fontFamily: 'JetBrains Mono, Consolas, monospace',
-          fontSize: 11,
-          fontWeight: 500,
-          color,
-        }}
-      >
-        {ttfa.toFixed(1)}s
-      </span>
-    </div>
+      TTFA{' '}
+      <span style={{ color }}>{ttfa.toFixed(1)}s</span>
+    </span>
   )
 }

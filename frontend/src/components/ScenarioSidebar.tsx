@@ -138,7 +138,7 @@ export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props)
         {/* Footer */}
         <div style={{ padding: '12px 16px 20px', borderTop: '1px solid var(--border)' }}>
           <div style={{ fontSize: 11, color: 'var(--text-subtle)', marginBottom: 10 }}>
-            Level: <span style={{ color: 'var(--accent)' }}>C1</span>
+            Level: <span style={{ color: 'var(--accent)' }}>B2</span>
             <span style={{ marginLeft: 8, color: 'var(--text-subtle)' }}>· Streak 7d 🔥</span>
           </div>
           <button

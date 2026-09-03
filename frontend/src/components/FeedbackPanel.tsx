@@ -73,6 +73,7 @@ export function FeedbackPanel({ feedback, open, onToggle }: Props) {
           border: '1px solid var(--border-accent)',
           background: 'var(--surface)',
           color: 'var(--accent)',
+          fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif',
           fontSize: 11,
           fontWeight: 600,
           letterSpacing: '0.04em',
@@ -145,7 +146,7 @@ export function FeedbackPanel({ feedback, open, onToggle }: Props) {
           )}
 
           {feedback && feedback.phrasing.length > 0 && (
-            <Item label="C1 phrasing">
+                <Item label="Phrasing">
               {feedback.phrasing.map((p, i) => (
                 <Card key={i}>
                   <div style={{ color: 'var(--text-subtle)', marginBottom: 4 }}>

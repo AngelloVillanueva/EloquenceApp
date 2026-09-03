@@ -17,7 +17,7 @@ _SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     display_name TEXT NOT NULL,
-    level TEXT NOT NULL DEFAULT 'C1',
+    level TEXT NOT NULL DEFAULT 'B2',
     created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS sessions (
@@ -86,11 +86,21 @@ class MemoryService:
         with self._lock:
             self._conn.close()
 
-    def ensure_default_user(self, display_name: str = "Angello", level: str = "C1") -> int:
+    def ensure_default_user(self, display_name: str = "Angello", level: str = "B2") -> int:
         with self._lock:
-            row = self._conn.execute("SELECT id FROM users ORDER BY id LIMIT 1").fetchone()
+            row = self._conn.execute(
+                "SELECT id, level FROM users ORDER BY id LIMIT 1"
+            ).fetchone()
             if row:
-                return int(row["id"])
+                uid = int(row["id"])
+                if str(row["level"]) != level:
+                    self._conn.execute(
+                        "UPDATE users SET level = ? WHERE id = ?",
+                        (level, uid),
+                    )
+                    self._conn.commit()
+                    logger.info("Default user level set to %s", level)
+                return uid
             cur = self._conn.execute(
                 "INSERT INTO users (display_name, level, created_at) VALUES (?, ?, ?)",
                 (display_name, level, _now()),
@@ -243,7 +253,7 @@ class MemoryService:
             ).fetchone()
 
         name = user["display_name"] if user else "learner"
-        level = user["level"] if user else "C1"
+        level = user["level"] if user else "B2"
         lines = [
             f"User: {name} · Level {level}"
             + (f" · Scenario: {scenario}" if scenario else ""),
@@ -255,7 +265,7 @@ class MemoryService:
             )
             lines.append(f"Recurring slips: {slips}")
         if vocab:
-            lines.append("C1 targets: " + ", ".join(r["word_or_phrase"] for r in vocab))
+                lines.append("Targets: " + ", ".join(r["word_or_phrase"] for r in vocab))
         if last:
             mins = (last["duration_s"] or 0) / 60
             lines.append(f"Last session: {mins:.0f} min · {last['scenario']}")

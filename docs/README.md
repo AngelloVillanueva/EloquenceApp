@@ -1,14 +1,14 @@
 # Docs
 
-Product and engineering documentation. The GitHub landing page is [`../README.md`](../README.md).
+Documentación de producto e ingeniería. La landing de GitHub es [`../README.md`](../README.md).
 
 | File | Audience |
 |------|----------|
-| [prd.md](prd.md) | Product requirements |
-| [architecture.md](architecture.md) | System design, VRAM budget, dual channel, SQLite plan |
-| [design-identity.md](design-identity.md) | Visual identity (Booth) |
-| [backlog.md](backlog.md) | Technical debt and next features |
-| [context.md](context.md) | Session decision log |
-| [assets/architecture-pipeline.png](assets/architecture-pipeline.png) | Pipeline diagram used in the README |
+| [prd.md](prd.md) | Requisitos de producto |
+| [architecture.md](architecture.md) | Sistema, VRAM, canal dual, escenarios, SQLite |
+| [design-identity.md](design-identity.md) | Studio Nocturne (gold / night) |
+| [backlog.md](backlog.md) | Deuda y siguientes features |
+| [context.md](context.md) | Log de decisiones de sesión |
+| [assets/architecture-pipeline.png](assets/architecture-pipeline.png) | Diagrama del README |
 
-Spanish ops guide: [`../README.es.md`](../README.es.md).
+Guía operativa en español: [`../README.es.md`](../README.es.md).

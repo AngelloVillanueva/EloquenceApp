@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from app.config import Settings
+from app.prompts.tutor_system import scenario_instruction
 from app.services.llm import OllamaLLM
 from app.ws.dual_channel import DualChannelSplitter, spoken_only_from_full
 from app.ws.sentence_buffer import SentenceBuffer
@@ -86,6 +87,15 @@ def test_llm_payload_includes_vram_guards() -> None:
     assert payload["options"]["num_predict"] == 220
 
 
+def test_scenario_instruction_free_not_job() -> None:
+    free = scenario_instruction("free")
+    assert "Active scenario: free" in free
+    assert "Do NOT default to job interviews" in free
+    job = scenario_instruction("job")
+    assert "Active scenario: job" in job
+    assert "interviewer" in job
+
+
 if __name__ == "__main__":
     test_sentence_buffer_basic()
     test_sentence_buffer_newline()
@@ -94,4 +104,5 @@ if __name__ == "__main__":
     test_spoken_only_from_full()
     test_protocol_imports()
     test_llm_payload_includes_vram_guards()
+    test_scenario_instruction_free_not_job()
     print("Phase 2 unit checks OK")

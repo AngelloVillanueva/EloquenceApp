@@ -28,6 +28,7 @@ interface UseWebSocketReturn {
   feedback: FeedbackPayload | null
   ttfa: number | null
   connect: (config?: { scenario?: string }) => void
+  sendConfig: (config: { scenario: string }) => void
   disconnect: () => void
   sendEndTurn: () => void
   sendCancel: () => void
@@ -130,6 +131,12 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     }
   }, [])
 
+  const sendConfig = useCallback((config: { scenario: string }) => {
+    setTranscript([])
+    setFeedback(null)
+    sendJson({ type: 'CONFIG', sample_rate: 16000, scenario: config.scenario })
+  }, [sendJson])
+
   const sendEndTurn = useCallback(() => sendJson({ type: 'END_TURN' }), [sendJson])
   const sendCancel = useCallback(() => sendJson({ type: 'CANCEL_AUDIO' }), [sendJson])
 
@@ -148,6 +155,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     feedback,
     ttfa,
     connect,
+    sendConfig,
     disconnect,
     sendEndTurn,
     sendCancel,

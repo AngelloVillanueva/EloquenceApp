@@ -16,22 +16,22 @@
 
 | Dimensión | Definición del producto |
 |-----------|-------------------------|
-| **Qué es** | Pipeline voz→texto→razón→voz con tutor pedagógico C1 |
+| **Qué es** | Pipeline voz→texto→razón→voz con tutor pedagógico (nivel actual **B2**, rumbo a C1) |
 | **Problema que resuelve** | Práctica oral continua sin suscripciones, sin latencia de red y sin ceder datos de voz |
 | **Filosofía** | $0/mes · privacidad total · respuesta voz-a-voz objetivo **~1.5–2.0 s** |
-| **Usuario** | Hispanohablante B1/B2 que quiere fluidez profesional C1 |
+| **Usuario** | Hispanohablante ~B2 (perfil SQLite: Angello) que quiere fluidez profesional C1 |
 
 La idea central no es “otro chatbot con micrófono”, sino un **sistema embebido de IA multimodal ligera** donde tres motores (STT, LLM, TTS) conviven en la misma GPU con un presupuesto de VRAM estricto y un contrato de latencia duro.
 
 ### 1.2 Casos de Uso y Enfoque Pedagógico
 
-El sistema empuja al alumno desde **inglés intermedio conversacional** hacia **inglés profesional (C1)** mediante:
+El sistema practica **inglés B2** (claro, profesional cotidiano) y estira con suavidad hacia **C1** mediante:
 
 1. **Inmersión conversacional** — 100% inglés por defecto; español solo si el usuario lo pide o se atasca.
 2. **Feedback no disruptivo** — correcciones gramaticales, de phrasing y de pronunciación llegan como **metadatos JSON** a una sidebar, sin interrumpir el flujo oral.
-3. **Shadowing (“Escucha y Repite”)** — cuando se detecta mala articulación, se genera una tarjeta con la frase nativa + reintento por micrófono.
-4. **Roleplay C1** — entrevistas senior, negociación, pitch técnico, defensa de arquitectura.
-5. **Memoria activa** — historial de errores recurrentes y vocabulario C1 consolidado (Fase 4).
+3. **Escenarios vinculantes** — Free Conversation, Job Interview, Architecture Defense, Negotiation, Vocabulary. El `CONFIG` inyecta un bloque `[SCENARIO]` al final del prompt; cambiar de escenario limpia el historial del WS.
+4. **Shadowing (“Escucha y Repite”)** — pendiente (Fase 4c).
+5. **Memoria activa** — SQLite guarda turnos, slips y vocab; la app inyecta un *memory brief* al abrir sesión.
 
 Pedagógicamente, el diseño separa **canal hablado** (corto, natural, 1–3 párrafos) de **canal analítico** (JSON estructurado). Así el oído practica fluidez mientras la vista recibe corrección de precisión.
 
@@ -41,9 +41,9 @@ Pedagógicamente, el diseño separa **canal hablado** (corto, natural, 1–3 pá
 |------|----------|--------|
 | **1** | Entorno CUDA + prueba STT→LLM→TTS | **Hecha** (warm ~3.3 s batch) |
 | **2** | FastAPI WebSockets + streaming + barge-in | **Hecha** (`/ws/audio`, TTFA ~2.1 s) |
-| **3** | Frontend Web Audio / UI React | **MVP** (`frontend/` Vite+React; VAD energía; estética Booth pendiente) |
+| **3** | Frontend Web Audio / UI React | **Hecha** (`frontend/` Vite+React; VAD energía ~1.5 s; Studio Nocturne gold/night) |
 | **4a** | Canal dual SPEAK/FEEDBACK + Coach notes | **Hecha** (`dual_channel.py` + panel UI) |
-| **4b** | Memoria SQLite entre sesiones | **Diseñada** (ver §9) — pendiente de código |
+| **4b** | Memoria SQLite entre sesiones | **Hecha** (`app/services/memory.py`, `/api/memory`, brief en el prompt) |
 | **4c** | Shadowing | Pendiente |
 
 **Cómo se corre hoy:** backend `uvicorn` en `:8000` + frontend `npm run dev` en `:5173`. La ruta `:8000/` sigue sirviendo la demo HTML de Fase 2; la app de producto es `:5173`.
@@ -170,17 +170,17 @@ Para cada pieza: **(a)** definición y capa, **(b)** función en el pipeline, **
 | **b) Función** | Grabar micrófono → frames binarios por WebSocket; reproducir chunks TTS con baja latencia. |
 | **c) Por qué** | Estándar web, sin Electron obligatorio; permite buffer/queue y barge-in limpiando el grafo de audio. |
 
-#### Silero VAD (Voice Activity Detection)
+#### VAD de energía (cliente, actual) / Silero (futuro)
 
 | | |
 |--|--|
-| **a) Definición** | Modelo ligero que clasifica voz vs silencio. Idealmente **en el cliente**. |
-| **b) Función** | Detectar fin de turno (~500 ms de silencio) y emitir *end-of-utterance* antes de STT. |
-| **c) Por qué** | Evita cortes prematuros (umbral fijo de energía) y reduce falsos finales. Corre en CPU del cliente → no pelea VRAM con el tutor. |
+| **a) Definición** | Detector de fin de turno en el browser. Hoy: RMS sobre frames del AudioWorklet (`useMicCapture.ts`). |
+| **b) Función** | Tras voz armada (`MIN_SPEECH_MS` ~450 ms), **1.5 s** de silencio → `END_TURN`. |
+| **c) Por qué** | 0.75 s cortaba dudas y frases a medias. 1.5 s deja pensar en B2. Silero WASM queda como mejora (menos falsos positivos). Corre en CPU del cliente → no pelea VRAM. |
 
-#### UI (React/Next/Vite + Tailwind o Electron)
+#### UI (Vite + React + TypeScript + Tailwind)
 
-Dashboard con orb de estado, botón Interrupt, transcript live, sidebar de feedback, módulos C1 y shadowing. Fase 3+.
+Sesión única (no Hub separado): orbe WebGL, transcript glass, Coach notes, escenarios, Gold/Night. Fuentes: Plus Jakarta Sans + JetBrains Mono. Orbes: ANIMATION_12 (gold) y ANIMATION_17 (night) desde `ElevateAI Desing/`.
 
 ---
 
@@ -249,8 +249,8 @@ flowchart TD
   subgraph FE["Capa Frontend / Cliente"]
     MIC["Micrófono"]
     WA["Web Audio API\nMediaRecorder + AudioContext"]
-    VAD["Silero VAD\nfin de turno ~500ms silencio"]
-    UI["UI: Orb · Transcript · Sidebar Feedback\nShadowing · Módulos C1"]
+    VAD["Energy VAD\nfin de turno ~1500ms silencio"]
+    UI["UI Studio Nocturne\nOrb · Transcript · Coach notes · Gold/Night"]
     PLAYER["Cola de reproducción TTS"]
     MIC --> WA --> VAD
     VAD -->|"audio chunks + END_TURN"| WS
@@ -275,7 +275,7 @@ flowchart TD
     SENT -->|"oración completa"| TTS
     TTS -->|"audio chunks"| WS
     WS -->|"PCM/opus frames"| PLAYER
-    SPLIT -->|"FEEDBACK"| MEM["MemoryService → SQLite\n(Fase 4b)"]
+    SPLIT -->|"FEEDBACK"| MEM["MemoryService → SQLite"]
   end
 
   subgraph CTRL["Flujos de control"]
@@ -314,7 +314,7 @@ flowchart TD
 
 5. Dual parse (`dual_channel.py`)
    Canal A — texto hablable → sentence buffer → TTS
-   Canal B — JSON feedback → evento WS FEEDBACK → sidebar (+ futuro SQLite)
+   Canal B — JSON feedback → evento WS FEEDBACK → sidebar + MemoryService
 
 6. TTS
    Cada oración flush → Kokoro/Piper → samples float32 → PCM_16 chunks
@@ -392,7 +392,7 @@ El camino de producción usa un prompt que **obliga** dos bloques:
 {"grammar":[…],"phrasing":[…],"pronunciation":[…],"notes":""}
 ```
 
-Identidad: Elevate AI, tutor C1 para hispanohablantes; respuestas cortas; inglés prioritario.  
+Identidad: Elevate AI, tutor en llamada de voz; alumno **B2**; SPEAK en inglés cotidiano; FEEDBACK puede sugerir upgrades C1. Tras el brief se añade `scenario_instruction()` (bloque vinculante).  
 `LATENCY_TEST_PROMPT` queda solo para benchmarks de Fase 1.
 
 ### 6.2 Audio fluido + JSON estructurado sin romper la voz
@@ -404,14 +404,27 @@ Identidad: Elevate AI, tutor C1 para hispanohablantes; respuestas cortas; inglé
 1. Stream de tokens → `DualChannelSplitter`.
 2. Solo el canal SPEAK entra al `SentenceBuffer` → cola TTS.
 3. Tras `<<<FEEDBACK>>>` se acumula JSON; al cerrar el turno se emite el evento WS `FEEDBACK`.
-4. El historial en RAM (y futuro SQLite) guarda **solo** el texto hablado del assistant.
+4. El historial en RAM (y `turns` en SQLite) guarda **solo** el texto hablado del assistant.
 
 | Canal | Contenido | Destino |
 |-------|-----------|---------|
 | **Speak** | Inglés conversacional | TTS + transcript + history LLM |
-| **Feedback** | JSON pedagógico | Sidebar Coach notes (+ futuro SQLite) |
+| **Feedback** | JSON pedagógico | Sidebar Coach notes + ingest SQLite |
 
 Fallback: si el modelo omite marcadores, todo el stream se trata como SPEAK (seguro para la voz).
+
+### 6.3 Escenarios vinculantes
+
+El cliente manda `{ "type": "CONFIG", "scenario": "free"|"job"|"arch"|"nego"|"vocab" }`.  
+`AudioWsSession._apply_scenario_prompt` reconstruye el system prompt:
+
+```
+SPOKEN_TUTOR_PROMPT
+[MEMORY BRIEF]
+[SCENARIO — binding]   ← último, gana si el brief menciona otra sesión
+```
+
+Si el escenario **cambia** en la misma conexión WS, se vacía `history` para no arrastrar el tema anterior (p. ej. entrevista de trabajo → free talk).
 
 ---
 
@@ -491,7 +504,7 @@ Memoria: RAM (sesión) + SQLite (entre sesiones, vía app)
 
 ---
 
-## 9. Memoria persistente con SQLite (diseño — Fase 4b)
+## 9. Memoria persistente con SQLite (implementada — Fase 4b)
 
 ### 9.1 Respuesta directa a las dudas de producto
 
@@ -501,14 +514,14 @@ Memoria: RAM (sesión) + SQLite (entre sesiones, vía app)
 | ¿Quién consulta SQLite? | **Solo FastAPI** (servicio de memoria). Ni el browser ni Ollama abren la DB. |
 | ¿El LLM ejecuta SQL? | **No.** Ollama solo recibe texto. La app lee SQLite y construye un *memory brief* en prosa/JSON corto que se inyecta en el prompt. |
 | ¿Cómo se usa al hacer sesiones? | Al **Start Session** (y opcionalmente cada N turnos) la app inyecta el brief. El Hub consulta REST sin LLM. |
-| ¿Qué se guarda? | Sesiones, turnos, ítems de feedback (grammar/phrasing/pronunciation), vocabulario C1, rachas. |
+| ¿Qué se guarda? | Sesiones, turnos, ítems de feedback (grammar/phrasing/pronunciation), vocabulario, duración / TTFA. |
 
 Regla de oro: **SQLite = cerebro de largo plazo de la app; el LLM = cerebro de turno, con amnesia salvo lo que la app le cuente.**
 
 ### 9.2 Esquema propuesto (tablas)
 
 ```
-users          id, display_name, level (C1…), created_at
+users          id, display_name, level (default B2), created_at
 sessions       id, user_id, scenario, started_at, ended_at, duration_s, ttfa_avg
 turns          id, session_id, user_text, assistant_text, created_at
 errors         id, user_id, kind (grammar|phrasing|pronunciation),
@@ -604,14 +617,14 @@ Texto que la app añadiría al system prompt al abrir sesión:
 
 ```
 [MEMORY BRIEF — do not read aloud]
-User: Angello · Level C1 · Scenario: Job Interview
+User: Angello · Level B2 · Scenario: free
 Recurring slips: "depend of" → "depend on" (×4); articles with uncountables.
-C1 targets this week: "leverage", "trade-off", "push back".
-Last session: 14 min · focus negotiation tone.
+Targets: "hinge on", "trade-off", "push back".
+Last session: 14 min · job
 ```
 
 Eso cabe en el presupuesto de contexto y da continuidad sin exponer SQL.
 
 ---
 
-*Última alineación: Fases 1–4a hechas · dual channel + Coach notes · VAD energía · frontend :5173 · diseño SQLite §9 · RTX 3060 12GB.*
+*Última alineación: 2026-09-02 · Fases 1–4b hechas · B2 + VAD 1.5 s · escenarios vinculantes · Studio Nocturne gold/night · SQLite vivo · RTX 3060 12GB.*

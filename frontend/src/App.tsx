@@ -1,5 +1,10 @@
 import { AppLayout } from './pages/AppLayout'
+import { ThemeProvider } from './theme/ThemeContext'
 
 export default function App() {
-  return <AppLayout />
+  return (
+    <ThemeProvider>
+      <AppLayout />
+    </ThemeProvider>
+  )
 }

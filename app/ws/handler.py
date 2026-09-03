@@ -11,7 +11,7 @@ from typing import Any
 from fastapi import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
-from app.prompts.tutor_system import SPOKEN_TUTOR_PROMPT
+from app.prompts.tutor_system import SPOKEN_TUTOR_PROMPT, scenario_instruction
 from app.services.memory import MemoryService, get_memory
 from app.services.runtime import AppRuntime, get_runtime
 from app.ws.audio_utils import pcm16_bytes_to_float32
@@ -48,6 +48,15 @@ class AudioWsSession:
         self.scenario: str = "free"
         self.ttfa_samples: list[float] = []
         self._system_prompt: str = SPOKEN_TUTOR_PROMPT
+
+    def _apply_scenario_prompt(self, scenario: str) -> None:
+        brief = self.memory.build_brief(self.user_id, scenario=scenario)
+        self._system_prompt = (
+            f"{SPOKEN_TUTOR_PROMPT}\n\n"
+            f"[MEMORY BRIEF — do not read aloud]\n{brief}\n\n"
+            f"{scenario_instruction(scenario)}\n"
+        )
+        logger.info("SQLite session %s scenario=%s\n%s", self.session_id, scenario, brief)
 
     async def run(self) -> None:
         await self.ws.accept()
@@ -128,17 +137,16 @@ class AudioWsSession:
             if sr > 0:
                 self.sample_rate = sr
             scenario = str(payload.get("scenario") or self.scenario).strip() or "free"
+            switched = scenario != self.scenario
             self.scenario = scenario
             if self.session_id is None:
                 self.session_id = self.memory.start_session(
                     user_id=self.user_id, scenario=scenario
                 )
-                brief = self.memory.build_brief(self.user_id, scenario=scenario)
-                self._system_prompt = (
-                    f"{SPOKEN_TUTOR_PROMPT}\n\n"
-                    f"[MEMORY BRIEF — do not read aloud]\n{brief}\n"
-                )
-                logger.info("SQLite session %s scenario=%s\n%s", self.session_id, scenario, brief)
+            elif switched:
+                self.history.clear()
+                logger.info("Scenario switched to %s — history cleared", scenario)
+            self._apply_scenario_prompt(scenario)
             await self.send_json(
                 msg(
                     ServerEvent.READY,

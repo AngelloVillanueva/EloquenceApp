@@ -6,28 +6,57 @@ import { InterruptButton } from '../components/InterruptButton'
 import { LiveTranscriptBox } from '../components/LiveTranscriptBox'
 import { SCENARIOS, ScenarioSidebar } from '../components/ScenarioSidebar'
 import { SessionTimer } from '../components/SessionTimer'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { TtfaBadge } from '../components/TtfaBadge'
 import { VoiceOrb } from '../components/VoiceOrb'
+import { ZenParticles } from '../components/ZenParticles'
 import { useAudioPlayback } from '../hooks/useAudioPlayback'
 import { useMicCapture } from '../hooks/useMicCapture'
 import { useWebSocket } from '../hooks/useWebSocket'
+import { useTheme } from '../theme/ThemeContext'
 
 const STATE_LABEL: Record<string, string> = {
   idle:      'Ready to speak',
-  listening: 'Listening\u2026',
-  thinking:  'Thinking\u2026',
-  speaking:  'Speaking\u2026',
+  listening: 'Listening…',
+  thinking:  'Thinking…',
+  speaking:  'Speaking…',
+}
+
+const STATE_TELEM: Record<string, string> = {
+  idle:      'Studio ready',
+  listening: 'Acoustic analysis',
+  thinking:  'Processing',
+  speaking:  'Voice output',
+}
+
+function useOrbSize(): number {
+  const [size, setSize] = useState(360)
+
+  useEffect(() => {
+    const apply = () => {
+      setSize(window.innerWidth < 640 ? 220 : 360)
+    }
+    apply()
+    window.addEventListener('resize', apply)
+    return () => window.removeEventListener('resize', apply)
+  }, [])
+
+  return size
 }
 
 export function AppLayout() {
+  const { theme } = useTheme()
+  const orbSize = useOrbSize()
+
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [feedbackOpen, setFeedbackOpen] = useState(true)
-  const [scenario, setScenario] = useState('job')
+  const [feedbackOpen, setFeedbackOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth > 768 : true,
+  )
+  const [scenario, setScenario] = useState('free')
   const [sessionStarted, setSessionStarted] = useState(false)
 
   const playback = useAudioPlayback()
 
-  // Stable refs so WS / VAD callbacks never go stale
   const resumeMicRef = useRef<() => void>(() => {})
   const setListeningRef = useRef<() => void>(() => {})
   const endTurnRef = useRef<() => void>(() => {})
@@ -75,6 +104,13 @@ export function AppLayout() {
 
   const scenarioLabel = SCENARIOS.find(s => s.id === scenario)?.title ?? 'Scenario'
 
+  const handleScenario = useCallback((id: string) => {
+    setScenario(id)
+    if (sessionStarted && ws.status === 'connected') {
+      ws.sendConfig({ scenario: id })
+    }
+  }, [sessionStarted, ws])
+
   const handleStart = useCallback(async () => {
     setSessionStarted(true)
     ws.connect({ scenario })
@@ -98,18 +134,7 @@ export function AppLayout() {
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
       <GrainOverlay />
 
-      <header style={{
-        height: 'var(--topbar-h)',
-        flexShrink: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 20px',
-        borderBottom: '1px solid var(--border)',
-        position: 'relative',
-        zIndex: 60,
-        background: 'var(--bg)',
-      }}>
+      <header className="studio-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             onClick={() => setSidebarOpen(v => !v)}
@@ -135,13 +160,15 @@ export function AppLayout() {
 
           <BrandMark />
 
-          <div style={{
-            fontSize: 11,
+          <div className="scenario-label" style={{
+            fontSize: 13,
             color: 'var(--text-subtle)',
-            display: 'flex', alignItems: 'center', gap: 5,
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.04em',
           }}>
             <span style={{ color: 'var(--border)' }}>|</span>
-            <span style={{ color: 'var(--accent)', opacity: 0.75 }}>{scenarioLabel}</span>
+            <span style={{ color: 'var(--accent)', opacity: 0.9 }}>{scenarioLabel}</span>
           </div>
         </div>
 
@@ -149,8 +176,9 @@ export function AppLayout() {
           <SessionTimer running={isConnected} orbState={displayState} />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <TtfaBadge ttfa={ws.ttfa} />
+          <ThemeToggle />
           <InterruptButton onInterrupt={handleInterrupt} active={isProcessing} />
         </div>
       </header>
@@ -158,7 +186,7 @@ export function AppLayout() {
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
         <ScenarioSidebar
           selected={scenario}
-          onSelect={setScenario}
+          onSelect={handleScenario}
           onClose={() => setSidebarOpen(false)}
           visible={sidebarOpen}
         />
@@ -176,98 +204,100 @@ export function AppLayout() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px 20px 32px',
-            overflowY: 'auto',
-            background: `radial-gradient(ellipse 60% 50% at 50% 46%, rgba(180,130,60,0.07) 0%, transparent 70%), var(--bg)`,
+            position: 'relative',
+            overflow: 'hidden',
+            background: 'var(--bg)',
           }}
           onClick={() => { if (sidebarOpen) setSidebarOpen(false) }}
         >
-          <div style={{
-            position: 'relative',
-            marginBottom: 16,
-            filter: isProcessing || isListening
-              ? 'drop-shadow(0 0 28px rgba(212,164,96,0.25))'
-              : 'none',
-            transition: 'filter 0.6s',
-          }}>
-            <VoiceOrb state={displayState} size={260} />
-          </div>
+          <ZenParticles />
 
-          <p style={{
-            fontSize: 13,
-            color: isConnected ? 'var(--text-muted)' : 'var(--text-subtle)',
-            letterSpacing: '0.04em',
-            height: 20,
-            marginBottom: 24,
-          }}>
-            {STATE_LABEL[displayState] ?? displayState}
-          </p>
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              marginTop: sessionStarted && ws.transcript.length > 0 ? -48 : -24,
+            }}
+          >
+            <VoiceOrb state={displayState} size={orbSize} variant={theme} />
 
-          {ws.transcript.length > 0 && (
-            <div style={{ width: '100%', maxWidth: 640, marginBottom: 20 }} className="animate-slide-up">
-              <LiveTranscriptBox lines={ws.transcript} />
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <div style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'var(--accent)',
+                opacity: 0.7,
+              }}>
+                {STATE_TELEM[displayState] ?? 'Studio'}
+              </div>
+              <p style={{
+                fontFamily: 'var(--font-ui)',
+                fontSize: 16,
+                color: isConnected ? 'var(--text)' : 'var(--text-subtle)',
+                letterSpacing: '0.04em',
+                opacity: 0.9,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+              }}>
+                <span style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: 'var(--accent)',
+                  animation: isListening || isProcessing ? 'orb-pulse 1.6s ease-in-out infinite' : 'none',
+                }} />
+                {STATE_LABEL[displayState] ?? displayState}
+              </p>
             </div>
-          )}
 
-          {!sessionStarted ? (
-            <button
-              onClick={() => void handleStart()}
-              style={{
-                padding: '13px 44px',
-                borderRadius: 9999,
-                background: 'var(--accent)',
-                color: '#0D0B09',
-                fontFamily: 'Inter, system-ui',
-                fontWeight: 600,
-                fontSize: 14,
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 0 24px rgba(212,164,96,0.35), 0 2px 8px rgba(0,0,0,0.4)',
-                transition: 'transform 0.15s, box-shadow 0.2s',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)'
-                ;(e.currentTarget as HTMLElement).style.boxShadow = '0 0 32px rgba(240,188,110,0.5), 0 2px 8px rgba(0,0,0,0.4)'
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.transform = 'scale(1)'
-                ;(e.currentTarget as HTMLElement).style.boxShadow = '0 0 24px rgba(212,164,96,0.35), 0 2px 8px rgba(0,0,0,0.4)'
-              }}
-            >
-              {ws.status === 'connecting' || mic.status === 'requesting'
-                ? 'Connecting…'
-                : 'Start Session'}
-            </button>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-              {mic.status === 'capturing' && !isProcessing && (
-                <p style={{ fontSize: 12, color: 'var(--text-subtle)', textAlign: 'center' }}>
-                  Speak naturally — pause ~0.7s to send
-                  <button
-                    onClick={handleDoneSpeaking}
-                    style={{
-                      display: 'block',
-                      margin: '8px auto 0',
-                      fontSize: 11,
-                      color: 'var(--accent)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                      textUnderlineOffset: 2,
-                    }}
-                  >
-                    or send now
-                  </button>
-                </p>
-              )}
+            {!sessionStarted && (
+              <button
+                className="btn-start"
+                style={{ marginTop: 28 }}
+                onClick={() => void handleStart()}
+              >
+                {ws.status === 'connecting' || mic.status === 'requesting'
+                  ? 'Connecting…'
+                  : 'Start Session'}
+              </button>
+            )}
 
-              {isProcessing && (
-                <p style={{ fontSize: 12, color: 'var(--text-subtle)' }}>
-                  Esc / Space to interrupt
-                </p>
-              )}
+            {sessionStarted && ws.transcript.length === 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 16 }}>
+                {mic.status === 'capturing' && !isProcessing && (
+                  <p style={{ fontSize: 12, color: 'var(--text-subtle)', textAlign: 'center' }}>
+                    Speak naturally — pause ~1.5s to send
+                    <button
+                      onClick={handleDoneSpeaking}
+                      style={{
+                        display: 'block',
+                        margin: '8px auto 0',
+                        fontSize: 11,
+                        color: 'var(--accent)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        textUnderlineOffset: 2,
+                      }}
+                    >
+                      or send now
+                    </button>
+                  </p>
+                )}
+                {isProcessing && (
+                  <p style={{ fontSize: 12, color: 'var(--text-subtle)' }}>
+                    Esc / Space to interrupt
+                  </p>
+                )}
+              </div>
+            )}
 
+            {sessionStarted && (
               <button
                 onClick={handleEnd}
                 style={{
@@ -277,26 +307,42 @@ export function AppLayout() {
                   border: 'none',
                   cursor: 'pointer',
                   padding: '4px 8px',
+                  marginTop: 8,
                   textDecoration: 'underline',
                   textUnderlineOffset: 3,
                 }}
               >
                 End session
               </button>
-            </div>
-          )}
+            )}
 
-          {mic.error && (
-            <p style={{ fontSize: 11, color: 'var(--interrupt)', marginTop: 12, textAlign: 'center' }}>
-              Mic error: {mic.error}
-            </p>
-          )}
+            {mic.error && (
+              <p style={{ fontSize: 11, color: 'var(--interrupt-hot)', marginTop: 12, textAlign: 'center' }}>
+                Mic error: {mic.error}
+              </p>
+            )}
+            {ws.status === 'error' && (
+              <p style={{ fontSize: 11, color: 'var(--interrupt-hot)', marginTop: 12, textAlign: 'center' }}>
+                Connection error — start the backend on port 8000
+              </p>
+            )}
+          </div>
 
-          {ws.status === 'error' && (
-            <p style={{ fontSize: 11, color: 'var(--interrupt)', marginTop: 12, textAlign: 'center' }}>
-              Connection error — start the backend on port 8000
-            </p>
-          )}
+          <div
+            className="transcript-dock"
+            style={{
+              position: 'absolute',
+              bottom: 32,
+              zIndex: 20,
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <LiveTranscriptBox
+              lines={ws.transcript}
+              thinking={ws.orbState === 'thinking'}
+            />
+          </div>
         </main>
       </div>
     </div>

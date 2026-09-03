@@ -1,7 +1,7 @@
 # Identidad visual — Elevate AI
 
-> **Estética base:** Booth (oscuro cálido + ámbar). Atlas y Signal descartadas como look.  
-> **Turno L (activo):** Rediseño consciente Hub + Session; level selector eliminado de pantalla de sesión.
+> **Estética base:** Studio Nocturne (Booth). Fuente de verdad: `ElevateAI Desing/`.  
+> **Gold** = `gold standard` + orbe ANIMATION_12. **Night** = `night standard` + orbe ANIMATION_17.
 
 Actualizado: 2026-09-02
 
@@ -20,50 +20,36 @@ Actualizado: 2026-09-02
 ## 2. Tokens de diseño (Booth)
 
 ```css
-/* Base */
+/* Gold studio — ElevateAI Desing/gold standard */
 --bg:            #0E0C0A;
---bg-elevated:   #151210;
---surface:       #1C1916;
---surface-high:  #242018;
-
-/* Texto */
---text:          #F2EDE5;
---text-muted:    #9C9288;
---text-subtle:   #5A5450;
-
-/* Acento ámbar */
---accent:        #D4A574;
---accent-warm:   #C4925E;
---accent-glow:   rgba(212, 165, 116, 0.15);
-
-/* Interrupt */
---interrupt:     #B85A48;
---interrupt-dim: rgba(184, 90, 72, 0.6);
-
-/* Orbe */
---orb-idle:      #2A2520;
---orb-listen:    #3D352B;
---orb-speak:     #EDE6DC;
-
-/* UI */
---border:        rgba(242, 237, 229, 0.07);
---border-amber:  rgba(212, 165, 116, 0.20);
---blur-surface:  rgba(14, 12, 10, 0.75);
-
-/* Tipografía */
---font-brand:    'Syne', 'Geist', system-ui;
---font-ui:       'Inter', 'Source Sans 3', system-ui;
+--surface:       #1A1714;
+--text:          #E8E1DD;
+--accent:        #E8A87C;          /* primary-container */
+--interrupt:     #690002;
+--border:        #2A241F;
+--font-brand:    'Plus Jakarta Sans';
+--font-ui:       'Plus Jakarta Sans';
+--font-display:  'Noto Serif';
+--font-mono:     'JetBrains Mono';
 ```
 
-### Night variant
+Toggle en topbar (`data-theme="gold" | "night"`). Persistido en `localStorage`.
+
+### Night variant — `ElevateAI Desing/night standard`
 ```css
-/* Night mode = mismo layout, superficie más opaca, ámbar más vivo */
 --bg:            #0A0908;
 --surface:       #161311;
---accent:        #E0B080;          /* ámbar +10% saturation */
---text:          #F5F0E8;
---text-muted:    #A09688;
+--accent:        #E0B080;
+--interrupt:     #E85D4E;
+--text:          #F5F0EB;
+--font-ui:       'Noto Serif';     /* cuerpo editorial */
 ```
+
+### Orbes
+| Tema | Shader | Origen |
+|------|--------|--------|
+| Gold | ANIMATION_12 líquido ámbar | `ElevateAI Desing/Orb 2` |
+| Night | ANIMATION_17 núcleo crema + anillos | `ElevateAI Desing/Obr Nightmode` |
 
 ---
 
@@ -81,12 +67,12 @@ Actualizado: 2026-09-02
 
 | Uso | Familia | Tamaño | Peso |
 |-----|---------|--------|------|
-| Brand mark "Elevate" | Syne | 20px | 700 |
-| "AI" (tag suave) | Syne | 14px | 400, ámbar |
-| Heading Hub | Syne | 28px | 600 |
-| Subtítulo / labels | Inter | 13px | 400–500 |
-| Transcript | Inter | 14px | 400 |
-| Métricas | Inter Mono | 11px | 500 |
+| Brand mark Elevate / AI | Plus Jakarta Sans | 18px | 600 |
+| Status gold | Plus Jakarta Sans | 16px | 400 |
+| Status night | Noto Serif | 18px | 400 |
+| Transcript | Plus Jakarta / Noto Serif (night) | 16px | 400 |
+| Chips YOU / ELEVATE | JetBrains Mono | 10px | 500, caps |
+| Telemetría / TTFA | JetBrains Mono | 11px | 400 |
 
 **No usar:** fuentes serif, condensadas, o cualquier cosa que evoque "universidad" o "banco".
 
