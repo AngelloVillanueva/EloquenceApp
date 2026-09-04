@@ -34,6 +34,17 @@ def test_sentence_buffer_flush_leftover() -> None:
     assert buf.flush() == "Almost done"
 
 
+def test_dual_channel_tokenized_markers() -> None:
+    """Ollama often yields <<< as its own token; holdback must not leak it."""
+    split = DualChannelSplitter()
+    speak = ""
+    for piece in ("<<<", "SPEAK>>>", "\nHello.", "\n<<<", "FEEDBACK>>>\n", '{"grammar":[],"phrasing":[],"pronunciation":[],"notes":""}'):
+        speak += split.push(piece)
+    speak += split.flush()
+    assert speak.strip() == "Hello."
+    assert split.parse_feedback() is not None
+
+
 def test_dual_channel_streaming() -> None:
     split = DualChannelSplitter()
     speak = ""
@@ -100,6 +111,7 @@ if __name__ == "__main__":
     test_sentence_buffer_basic()
     test_sentence_buffer_newline()
     test_sentence_buffer_flush_leftover()
+    test_dual_channel_tokenized_markers()
     test_dual_channel_streaming()
     test_spoken_only_from_full()
     test_protocol_imports()

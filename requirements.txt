@@ -1,4 +1,4 @@
-# Elevate AI — Local English Tutor (Phase 1)
+# Eloquence — Local English Tutor (Phase 1)
 # Python 3.11 or 3.12 required (3.14 is NOT supported by torch/ctranslate2 yet)
 
 # --- Web / app ---

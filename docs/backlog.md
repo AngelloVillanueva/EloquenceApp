@@ -1,4 +1,4 @@
-# Backlog — Elevate AI
+# Backlog — Eloquence
 
 Ideas y deudas técnicas para más adelante (no bloquean Fase 3 UI).
 

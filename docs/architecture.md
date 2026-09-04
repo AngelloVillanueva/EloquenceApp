@@ -2,7 +2,7 @@
 
 > **Documentación oficial del sistema** y **guía de estudio senior** para comprender cómo opera una aplicación de IA de voz 100% local y de baja latencia.
 >
-> Producto: **Elevate AI** · Hardware objetivo: **NVIDIA GeForce RTX 3060 (12 GB VRAM)**  
+> Producto: **Eloquence** · Hardware objetivo: **NVIDIA GeForce RTX 3060 (12 GB VRAM)**  
 > Fuentes: [`prd.md`](prd.md), implementación en este repositorio, mediciones reales en RTX 3060 12GB.  
 > Diagrama: [`assets/architecture-pipeline.png`](assets/architecture-pipeline.png) (también en el README raíz).
 
@@ -12,7 +12,7 @@
 
 ### 1.1 Propósito e Idea Central
 
-**Elevate AI** (arquitectura tipo Codybot) es un **tutor de inglés por voz** que corre **enteramente en el PC del usuario**. No envía audio ni texto a APIs cloud (OpenAI, Deepgram, ElevenLabs, etc.).
+**Eloquence** (arquitectura tipo Codybot) es un **tutor de inglés por voz** que corre **enteramente en el PC del usuario**. No envía audio ni texto a APIs cloud (OpenAI, Deepgram, ElevenLabs, etc.).
 
 | Dimensión | Definición del producto |
 |-----------|-------------------------|
@@ -123,7 +123,8 @@ Para cada pieza: **(a)** definición y capa, **(b)** función en el pipeline, **
 
 | Modelo | Rol |
 |--------|-----|
-| **Llama 3.1 8B Instruct** | Default verificado (`llama3.1:8b`) — buen inglés conversacional |
+| **Llama 3.1 8B Instruct** | Default verificado (`llama3.1:8b`) — menor VRAM, TTFT más bajo en 3060 12GB |
+| **Gemma 2 9B** | Opcional (`gemma2:9b`) — mejor cumplimiento del JSON dual; ~1.2 GB más VRAM. Ver §2.3.1 |
 | **Qwen 2.5 7B Instruct** | Alternativa fuerte en instrucciones y estructura |
 | **Qwen 2.5 VL 7B** | Reservado para escenarios con diagramas/imágenes |
 
@@ -135,6 +136,22 @@ Para cada pieza: **(a)** definición y capa, **(b)** función en el pipeline, **
 - Sin cuantización, un 8B FP16 solo ya se come ~16 GB → **imposible** en 3060 12GB junto al resto del pipeline.
 
 **Medición Phase 1 (warm):** LLM ~**0.90 s** para respuesta corta. Cold start Ollama: **~60–80 s** (carga a VRAM).
+
+#### 2.3.1 Eval Gemma 2 9B vs Llama 3.1 8B (mismo Ollama, RTX 3060 12GB)
+
+Ollama es el runtime (`:11434`); Gemma es un modelo *dentro* de Ollama (`ollama pull gemma2:9b`). No hace falta otro servidor (llama.cpp / LM Studio).
+
+Medición 2026-09-04, `scripts/eval_ollama_models.py`, 5 turnos (free + job) con `SPOKEN_TUTOR_PROMPT`. VRAM = `nvidia-smi` de la tarjeta (en Windows WDDM el uso por proceso suele ser N/A). Whisper y Kokoro **no** estaban cargados en esta corrida; hay que sumar ~2.5–3.5 GB al convivir.
+
+| | Llama 3.1 8B (default) | Gemma 2 9B |
+|--|------------------------|------------|
+| VRAM modelo (warm) | ~5.4 GB | ~6.6 GB |
+| Cabe con STT+TTS en 12 GB | Sí (~8.4–9 GB total est.) | Sí, más justo (~9.6–10.1 GB est.) |
+| TTFT / primer SPEAK (warm, turnos 2–5) | **~0.43 s** | ~0.65 s |
+| `<<<SPEAK>>>` / JSON dual parseable | 1/5 (JSON a menudo se corta con `num_predict=220`) | **5/5** (JSON más corto) |
+| Licencia | Llama | Gemma (términos Google) |
+
+**Decisión:** se mantiene `OLLAMA_MODEL=llama3.1:8b`. Gemma queda como override opcional si se prioriza el JSON del canal dual y se acepta ~1.2 GB menos de headroom. No cambiar el default hasta una prueba de TTFA voz-a-voz con Whisper+Kokoro coresidentes.
 
 ---
 
@@ -238,7 +255,7 @@ El gap 3.3 → ≤2.0 **no se cierra esperando que el batch sea más rápido**, 
 
 ## 4. Diagrama de Arquitectura de Sistema (Mermaid.js)
 
-![Pipeline Elevate AI](assets/architecture-pipeline.png)
+![Pipeline Eloquence](assets/architecture-pipeline.png)
 
 ```mermaid
 flowchart TD
@@ -392,7 +409,7 @@ El camino de producción usa un prompt que **obliga** dos bloques:
 {"grammar":[…],"phrasing":[…],"pronunciation":[…],"notes":""}
 ```
 
-Identidad: Elevate AI, tutor en llamada de voz; alumno **B2**; SPEAK en inglés cotidiano; FEEDBACK puede sugerir upgrades C1. Tras el brief se añade `scenario_instruction()` (bloque vinculante).  
+Identidad: Eloquence, tutor en llamada de voz; alumno **B2**; SPEAK en inglés cotidiano; FEEDBACK puede sugerir upgrades C1. Tras el brief se añade `scenario_instruction()` (bloque vinculante).  
 `LATENCY_TEST_PROMPT` queda solo para benchmarks de Fase 1.
 
 ### 6.2 Audio fluido + JSON estructurado sin romper la voz
@@ -405,6 +422,7 @@ Identidad: Elevate AI, tutor en llamada de voz; alumno **B2**; SPEAK en inglés 
 2. Solo el canal SPEAK entra al `SentenceBuffer` → cola TTS.
 3. Tras `<<<FEEDBACK>>>` se acumula JSON; al cerrar el turno se emite el evento WS `FEEDBACK`.
 4. El historial en RAM (y `turns` en SQLite) guarda **solo** el texto hablado del assistant.
+5. El holdback de marcadores incompletos guarda el **prefijo más largo** de `<<<SPEAK>>>` / `<<<FEEDBACK>>>`. Si se retenía solo el último `<`, Ollama (que a menudo emite el token `<<<` solo) filtraba los ángulos al TTS y el splitter nunca veía el marcador.
 
 | Canal | Contenido | Destino |
 |-------|-----------|---------|

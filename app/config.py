@@ -23,7 +23,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "Elevate AI — Local English Tutor"
+    app_name: str = "Eloquence — Local English Tutor"
     host: str = "127.0.0.1"
     port: int = 8000
     debug: bool = True

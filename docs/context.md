@@ -1,7 +1,7 @@
 # context.md — Memoria de conversación y decisiones
 
-Documento vivo. Resume lo hablado y decidido sobre **Elevate AI**.  
-Última actualización: **2026-09-02** — UI Studio Nocturne, B2, VAD 1.5 s, escenarios vinculantes, docs alineados.
+Documento vivo. Resume lo hablado y decidido sobre **Eloquence**.  
+Última actualización: **2026-09-04** — rebrand Eloquence; eval Gemma vs Llama.
 
 ---
 
@@ -9,7 +9,9 @@ Documento vivo. Resume lo hablado y decidido sobre **Elevate AI**.
 
 | Campo | Valor |
 |-------|-------|
-| Producto | Elevate AI |
+| Producto | Eloquence |
+| SQLite | `data/elevate.db` (path histórico; no se migra en el rebrand) |
+| GitHub remoto | `ElevateAIApp` (sin renombrar en este paso) |
 | Arquitectura | 100% local (STT + LLM + TTS en una GPU) |
 | Alumno | Hispanohablante **B2** (perfil SQLite: Angello) rumbo a C1 |
 | KPI | TTFA ~1.5–2.0 s (streaming) |
@@ -83,6 +85,7 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 - **T:** Nivel **B2**; VAD **750 → 1500 ms**.
 - **U:** Night = mismo chrome que Gold (anillos, Plus Jakarta, orbe más grande); escenarios **vinculantes**.
 - **V:** README, arquitectura y este context alineados con el código.
+- **W:** Rebrand a **Eloquence** (wordmark de una palabra, sin sufijo AI). SQLite sigue en `data/elevate.db`. Eval Gemma vs Llama en Ollama (ver §11).
 
 ---
 
@@ -97,6 +100,8 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 7. Fin de turno: **1.5 s** de silencio (dudas y frases incompletas).
 8. UI: Studio Nocturne. Night reutiliza el formato Gold; solo cambian fondo + shader del orbe.
 9. El escenario no es cosmética: instruye al tutor y, al cambiar, resetea el hilo.
+10. Marca **Eloquence** (una palabra, sin sufijo AI). No se renombra `data/elevate.db` ni la carpeta `ElevateAI Desing/`.
+11. LLM default: **Llama 3.1 8B** en Ollama. Gemma 2 9B es opcional (`OLLAMA_MODEL=gemma2:9b`); ver §11.
 
 ---
 
@@ -119,7 +124,7 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 | Gold (default) | ANIMATION_12 líquido ámbar | `#0E0C0A` |
 | Night | ANIMATION_17 núcleo crema + anillos | `#0A0908` |
 
-Misma topbar, mismas fuentes (Plus Jakarta + JetBrains Mono), mismos ticks alrededor del orbe. Toggle luna/sol en `localStorage` (`elevate-theme`).
+Misma topbar, mismas fuentes (Plus Jakarta + JetBrains Mono), mismos ticks alrededor del orbe. Toggle luna/sol en `localStorage` (`eloquence-theme`; still reads legacy `elevate-theme` once).
 
 Fuentes de diseño: `ElevateAI Desing/` (gold standard, night standard, Orb 2, Obr Nightmode, mobile).
 
@@ -138,6 +143,23 @@ docs/architecture.md      sistema + §6.3 escenarios + §9 SQLite
 docs/design-identity.md   tokens Studio Nocturne
 ElevateAI Desing/         HTML de referencia visual
 ```
+
+---
+
+## 11. Eval Gemma 2 9B vs Llama 3.1 8B (2026-09-04)
+
+Ollama ya era el servidor; se evaluó **otro modelo** en el mismo `:11434`, no un runtime nuevo.
+
+| | `llama3.1:8b` (sigue default) | `gemma2:9b` (opcional) |
+|--|------------------------------|-------------------------|
+| VRAM warm (`nvidia-smi` tarjeta) | 5354 MB | 6554 MB |
+| Primer SPEAK warm (turnos 2–5) | 0.43 s | 0.65 s |
+| Dual `SPEAK`+JSON válido | 1/5 (JSON recortado a 220 tokens) | 5/5 |
+| JSON filtrado al TTS (tras fix holdback) | 0/5 | 0/5 |
+
+Harness: `scripts/eval_ollama_models.py`. Conclusión: **no cambiar el default**. Gemma cabe en 12 GB con STT+TTS pero deja menos holgura; Llama es más rápido al primer token. Override: `OLLAMA_MODEL=gemma2:9b` en `.env`.
+
+Durante la eval se corrigió `_holdback_for_marker` en `app/ws/dual_channel.py` (el token `<<<` se filtraba al canal hablado).
 
 ---
 

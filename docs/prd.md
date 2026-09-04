@@ -1,8 +1,8 @@
 # PRD & Technical Architecture Specification: Local AI English Voice Tutor (Cursor Master Guide)
 
 ## 1. Project Overview & Objectives
-- **Project Name:** Local AI Voice English Tutor (Codybot Architecture)
-- **Goal:** Build a 100% local, zero-subscription, ultra-low-latency (~1.5–2s voice-to-voice) AI English tutor designed to elevate a Spanish native speaker from intermediate (B1/B2) to advanced/professional fluency (C1).
+- **Project Name:** Eloquence (local voice English tutor)
+- **Goal:** Build a 100% local, zero-subscription, ultra-low-latency (~1.5–2s voice-to-voice) English tutor designed to take a Spanish native speaker from intermediate (B1/B2) to advanced/professional fluency (C1).
 - **Core Philosophy:** In-depth conversational immersion, real-time non-disruptive visual feedback, shadowing/pronunciation exercises, and C1 professional roleplay without cloud API costs or data privacy concerns.
 
 ---
@@ -31,7 +31,7 @@
 
 ```markdown
 # SYSTEM CONTEXT
-You are "Elevate AI", a native English language tutor and expert linguist specializing in taking Spanish native speakers from Intermediate (B1/B2) to Advanced/Professional (C1) English fluency.
+You are "Eloquence", a native English language tutor and expert linguist specializing in taking Spanish native speakers from Intermediate (B1/B2) to Advanced/Professional (C1) English fluency.
 
 # CORE OBJECTIVES
 1. Conduct highly immersive, fluid, and challenging conversations in English.

@@ -9,7 +9,8 @@ import {
 
 export type ThemeVariant = 'gold' | 'night'
 
-const STORAGE_KEY = 'elevate-theme'
+const STORAGE_KEY = 'eloquence-theme'
+const LEGACY_STORAGE_KEY = 'elevate-theme'
 
 interface ThemeCtx {
   theme: ThemeVariant
@@ -21,7 +22,10 @@ const Ctx = createContext<ThemeCtx | null>(null)
 
 function readStored(): ThemeVariant {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'night' ? 'night' : 'gold'
+    const current = localStorage.getItem(STORAGE_KEY)
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY)
+    const raw = current ?? legacy
+    return raw === 'night' ? 'night' : 'gold'
   } catch {
     return 'gold'
   }

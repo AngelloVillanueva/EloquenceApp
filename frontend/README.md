@@ -1,4 +1,4 @@
-# Elevate AI — frontend
+# Eloquence — frontend
 
 Vite + React + TypeScript client for the local voice tutor.
 

@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "elevate-ai"
+name = "eloquence"
 version = "0.1.0"
 description = "100% local English voice tutor (STT + LLM + TTS) for RTX 3060"
 readme = "README.md"

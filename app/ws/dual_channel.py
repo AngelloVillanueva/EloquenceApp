@@ -116,12 +116,17 @@ class DualChannelSplitter:
 
 
 def _holdback_for_marker(buf: str) -> int:
-    """How many trailing chars might be an incomplete <<<...>>> marker."""
+    """How many trailing chars might be an incomplete <<<...>>> marker.
+
+    Must hold the *longest* prefix: if the buffer is ``<<<``, holding only
+    the last ``<`` would leak ``<<`` into the spoken channel and the
+    marker would never assemble (Ollama often emits ``<<<`` as one token).
+    """
     max_mark = len(_FEEDBACK_OPEN) + 4
     n = min(len(buf), max_mark)
-    for i in range(1, n + 1):
+    for i in range(n, 0, -1):
         tail = buf[-i:]
-        if _FEEDBACK_OPEN.startswith(tail) or _SPEAK_OPEN.startswith(tail) or tail.startswith("<"):
+        if _FEEDBACK_OPEN.startswith(tail) or _SPEAK_OPEN.startswith(tail):
             return i
     return 0
 

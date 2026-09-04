@@ -1,10 +1,10 @@
-# Elevate AI
+# Eloquence
 
 **100% local English voice tutor** — STT → LLM → TTS on a single NVIDIA RTX 3060 12GB. No cloud APIs on the critical path, no subscription.
 
 Built for Spanish speakers at about **B2**, stretching toward **C1** professional fluency.
 
-![Elevate AI local voice pipeline](docs/assets/architecture-pipeline.png)
+![Eloquence local voice pipeline](docs/assets/architecture-pipeline.png)
 
 *Browser (mic + energy VAD) → FastAPI WebSocket → Faster-Whisper → Ollama (`SPEAK` / `FEEDBACK`) → Kokoro TTS. Long-term memory: SQLite on disk, queried only by the app.*
 
@@ -56,7 +56,7 @@ models/              ONNX weights (gitignored)
 |-----------|--------|
 | Python **3.11 or 3.12** | 3.14 is not supported by torch / ctranslate2 |
 | NVIDIA RTX 3060 12GB | CUDA 12.x driver |
-| [Ollama](https://ollama.com/download) | `llama3.1:8b` pulled and **running** |
+| [Ollama](https://ollama.com/download) | `llama3.1:8b` pulled and **running**. Optional: `gemma2:9b` via `OLLAMA_MODEL` |
 | Node.js 20+ | Frontend |
 
 ## Setup

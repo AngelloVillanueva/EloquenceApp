@@ -1,6 +1,6 @@
 # Design assets
 
-Visual exploration for Elevate AI. These files are **references**, not runtime code.
+Visual exploration for Eloquence. These files are **references**, not runtime code.
 
 | Path | Contents |
 |------|----------|

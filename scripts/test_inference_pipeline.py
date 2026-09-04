@@ -142,7 +142,7 @@ def main() -> int:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
 
-    print_banner("Elevate AI - Phase 1 Local Inference Test (RTX 3060)")
+    print_banner("Eloquence - Phase 1 Local Inference Test (RTX 3060)")
     print(f"Target warm latency: <= {settings.target_pipeline_latency_s:.1f}s")
     print(f"Whisper: {settings.whisper_model_size} | {settings.whisper_device}/{settings.whisper_compute_type}")
     print(f"Ollama:  {settings.ollama_model} @ {settings.ollama_base_url}")

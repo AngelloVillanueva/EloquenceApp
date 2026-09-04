@@ -10,18 +10,7 @@ export function BrandMark() {
           color: 'var(--text)',
         }}
       >
-        Elevate
-      </span>
-      <span
-        style={{
-          fontFamily: 'var(--font-brand)',
-          fontWeight: 600,
-          fontSize: 22,
-          letterSpacing: '-0.02em',
-          color: 'var(--accent)',
-        }}
-      >
-        AI
+        Eloquence
       </span>
     </div>
   )

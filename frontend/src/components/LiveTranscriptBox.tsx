@@ -29,7 +29,7 @@ export function LiveTranscriptBox({ lines, thinking = false }: Props) {
             />
           )}
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <span className="chip">{line.role === 'user' ? 'YOU' : 'ELEVATE'}</span>
+            <span className="chip">{line.role === 'user' ? 'YOU' : 'ELOQUENCE'}</span>
             <p
               style={{
                 fontFamily: 'var(--font-ui)',
@@ -56,7 +56,7 @@ export function LiveTranscriptBox({ lines, thinking = false }: Props) {
             />
           )}
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', opacity: 0.55 }}>
-            <span className="chip">ELEVATE</span>
+            <span className="chip">ELOQUENCE</span>
             <div style={{ display: 'flex', gap: 4, paddingTop: 8 }}>
               <span className="typing-dot" />
               <span className="typing-dot" />

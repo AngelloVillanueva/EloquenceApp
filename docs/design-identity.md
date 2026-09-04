@@ -1,9 +1,9 @@
-# Identidad visual — Elevate AI
+# Identidad visual — Eloquence
 
 > **Estética base:** Studio Nocturne (Booth). Fuente de verdad: `ElevateAI Desing/`.  
 > **Gold** = `gold standard` + orbe ANIMATION_12. **Night** = `night standard` + orbe ANIMATION_17.
 
-Actualizado: 2026-09-02
+Actualizado: 2026-09-04 — wordmark Eloquence
 
 ---
 
@@ -67,11 +67,11 @@ Toggle en topbar (`data-theme="gold" | "night"`). Persistido en `localStorage`.
 
 | Uso | Familia | Tamaño | Peso |
 |-----|---------|--------|------|
-| Brand mark Elevate / AI | Plus Jakarta Sans | 18px | 600 |
+| Brand mark Eloquence | Plus Jakarta Sans | 22px | 600 |
 | Status gold | Plus Jakarta Sans | 16px | 400 |
 | Status night | Noto Serif | 18px | 400 |
 | Transcript | Plus Jakarta / Noto Serif (night) | 16px | 400 |
-| Chips YOU / ELEVATE | JetBrains Mono | 10px | 500, caps |
+| Chips YOU / ELOQUENCE | JetBrains Mono | 10px | 500, caps |
 | Telemetría / TTFA | JetBrains Mono | 11px | 400 |
 
 **No usar:** fuentes serif, condensadas, o cualquier cosa que evoque "universidad" o "banco".
@@ -86,7 +86,7 @@ Seleccionar escenario antes de entrar en sesión. Punto de partida natural.
 ### Layout
 
 ```
-┌─ Elevate [A]I ─────────────────── [•] streak  [⚙] ─┐
+┌─ Eloquence ────────────────────── [•] streak  [⚙] ─┐
 │                                                      │
 │  Good evening, Angello.                              │
 │  Level: C1  ·  Sessions this week: 3                │
@@ -125,7 +125,7 @@ Seleccionar escenario antes de entrar en sesión. Punto de partida natural.
 ### Layout
 
 ```
-┌─ Elevate AI ──────── [◉ 01:42] ── [TTFA 1.7s] ── [■] ─┐
+┌─ Eloquence ───────── [◉ 01:42] ── [TTFA 1.7s] ── [■] ─┐
 │                                                         │
 │                                                         │
 │                    ╭───────────╮                        │
@@ -138,7 +138,7 @@ Seleccionar escenario antes de entrar en sesión. Punto de partida natural.
 │                                                         │
 │  ┌─ transcript ────────────────────────────────────┐    │
 │  │ You    "Could you elaborate on that point—"     │    │
-│  │ Elevate "Absolutely. What I mean is that…"     │    │
+│  │ Eloquence "Absolutely. What I mean is that…"   │    │
 │  └─────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -149,13 +149,13 @@ Seleccionar escenario antes de entrar en sesión. Punto de partida natural.
 
 | Componente | Posición | Notas |
 |------------|----------|-------|
-| `BrandMark` | Top left | "Elevate AI" — pequeño, 18px |
+| `BrandMark` | Top left | "Eloquence" — Plus Jakarta 22px |
 | `SessionTimer` | Top center | `◉ MM:SS` — dot pulsa en speaking |
 | `TtfaBadge` | Top right -2 | `TTFA 1.7s` mono, ámbar |
 | `InterruptButton` | Top right | Ícono square-stop, coral `--interrupt`, 32×32px |
 | `VoiceOrb` | Center | Estados: idle / listen / think / speak |
 | `StateLabel` | Bajo orbe | "Listening…" / "Thinking…" / "Speaking…" — muted |
-| `LiveTranscriptBox` | Bottom | Glassmorphism, 2 filas You/Elevate, auto-scroll |
+| `LiveTranscriptBox` | Bottom | Glassmorphism, 2 filas You/Eloquence, auto-scroll |
 
 ### Interrupt button
 - Tamaño máximo: 32×32 px, icono `■` (stop) o `⏸`.

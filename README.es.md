@@ -1,10 +1,10 @@
-# Elevate AI
+# Eloquence
 
 Tutor de inglés por voz **100% local** (STT → LLM → TTS) en una **RTX 3060 12GB**. Sin APIs cloud en el camino crítico y sin suscripción.
 
 Pensado para hispanohablantes en torno a **B2**, con estirón suave hacia **C1**.
 
-![Pipeline local Elevate AI](docs/assets/architecture-pipeline.png)
+![Pipeline local Eloquence](docs/assets/architecture-pipeline.png)
 
 Guía operativa en español. La landing principal (EN) es [`README.md`](README.md). Arquitectura: [`docs/architecture.md`](docs/architecture.md).
 
@@ -36,7 +36,7 @@ Nivel guardado: **B2**.
 
 ## Cómo encaja Ollama
 
-Ollama es un **servicio aparte**. FastAPI le habla por HTTP; la UI nunca lo llama. Hay que tenerlo abierto **antes** de Start Session.
+Ollama es un **servicio aparte**. FastAPI le habla por HTTP; la UI nunca lo llama. Hay que tenerlo abierto **antes** de Start Session. El modelo por defecto es `llama3.1:8b`; `gemma2:9b` es opcional (`OLLAMA_MODEL`). Detalle: [`docs/context.md`](docs/context.md) §11.
 
 ## Instalación y arranque
 
