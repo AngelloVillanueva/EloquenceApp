@@ -29,7 +29,7 @@ Documento vivo. Resume lo hablado y decidido sobre **Eloquence**.
 | Frontend | Vite + React + TS + Tailwind | `:5173` |
 | WebSocket | `/ws/audio` | PCM + JSON (`CONFIG`, `END_TURN`, `CANCEL_AUDIO`) |
 | STT | Faster-Whisper `medium.en` | CUDA float16 |
-| LLM | Ollama `llama3.1:8b` | keep_alive=-1, num_ctx=2048, num_predict=220 |
+| LLM | Ollama `llama3.1:8b` | keep_alive=-1, num_ctx=2048, num_predict=120 (`.env`) |
 | TTS | Kokoro ONNX GPU | Piper fallback |
 | Dual channel | `<<<SPEAK>>>` / `<<<FEEDBACK>>>` | TTS limpio + Coach notes |
 | VAD | Energía RMS en cliente | **1500 ms** de silencio → `END_TURN` |
@@ -154,7 +154,7 @@ Ollama ya era el servidor; se evaluó **otro modelo** en el mismo `:11434`, no u
 |--|------------------------------|-------------------------|
 | VRAM warm (`nvidia-smi` tarjeta) | 5354 MB | 6554 MB |
 | Primer SPEAK warm (turnos 2–5) | 0.43 s | 0.65 s |
-| Dual `SPEAK`+JSON válido | 1/5 (JSON recortado a 220 tokens) | 5/5 |
+| Dual `SPEAK`+JSON válido | 1/5 (JSON recortado por `num_predict=120`) | 5/5 |
 | JSON filtrado al TTS (tras fix holdback) | 0/5 | 0/5 |
 
 Harness: `scripts/eval_ollama_models.py`. Conclusión: **no cambiar el default**. Gemma cabe en 12 GB con STT+TTS pero deja menos holgura; Llama es más rápido al primer token. Override: `OLLAMA_MODEL=gemma2:9b` en `.env`.

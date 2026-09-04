@@ -141,14 +141,14 @@ Para cada pieza: **(a)** definición y capa, **(b)** función en el pipeline, **
 
 Ollama es el runtime (`:11434`); Gemma es un modelo *dentro* de Ollama (`ollama pull gemma2:9b`). No hace falta otro servidor (llama.cpp / LM Studio).
 
-Medición 2026-09-04, `scripts/eval_ollama_models.py`, 5 turnos (free + job) con `SPOKEN_TUTOR_PROMPT`. VRAM = `nvidia-smi` de la tarjeta (en Windows WDDM el uso por proceso suele ser N/A). Whisper y Kokoro **no** estaban cargados en esta corrida; hay que sumar ~2.5–3.5 GB al convivir.
+Medición 2026-09-04, `scripts/eval_ollama_models.py`, 5 turnos (free + job) con `SPOKEN_TUTOR_PROMPT` y `num_predict=120` (valor real del `.env`). VRAM = `nvidia-smi` de la tarjeta (en Windows WDDM el uso por proceso suele ser N/A). En la corrida de eval Whisper y Kokoro **no** estaban cargados; medido aparte con el stack completo (Whisper `medium.en` + Kokoro + Llama warm): **7506 MiB / 12288 MiB**, o sea STT+TTS ≈ 2.1 GB.
 
 | | Llama 3.1 8B (default) | Gemma 2 9B |
 |--|------------------------|------------|
 | VRAM modelo (warm) | ~5.4 GB | ~6.6 GB |
-| Cabe con STT+TTS en 12 GB | Sí (~8.4–9 GB total est.) | Sí, más justo (~9.6–10.1 GB est.) |
+| Cabe con STT+TTS en 12 GB | Sí — **7.5 GB medidos**, ~4.7 GB de headroom | Sí, más justo (~8.7 GB est.) |
 | TTFT / primer SPEAK (warm, turnos 2–5) | **~0.43 s** | ~0.65 s |
-| `<<<SPEAK>>>` / JSON dual parseable | 1/5 (JSON a menudo se corta con `num_predict=220`) | **5/5** (JSON más corto) |
+| `<<<SPEAK>>>` / JSON dual parseable | 1/5 (JSON a menudo se corta con `num_predict=120`) | **5/5** (JSON más corto) |
 | Licencia | Llama | Gemma (términos Google) |
 
 **Decisión:** se mantiene `OLLAMA_MODEL=llama3.1:8b`. Gemma queda como override opcional si se prioriza el JSON del canal dual y se acepta ~1.2 GB menos de headroom. No cambiar el default hasta una prueba de TTFA voz-a-voz con Whisper+Kokoro coresidentes.
