@@ -1,12 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { FRAG_GOLD, FRAG_NIGHT, VERT } from '../orb/shaders'
-import type { ThemeVariant } from '../theme/ThemeContext'
+import { FRAG_BY_FORM, VERT } from '../orb/shaders'
+import { useOrbPalette } from '../theme/palette'
 import type { OrbState } from '../types/ws'
 
 interface Props {
   state: OrbState
   size?: number
-  variant?: ThemeVariant
 }
 
 const STATE_U: Record<OrbState, { intensity: number; speed: number; glow: number }> = {
@@ -30,7 +29,8 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t
 }
 
-export function VoiceOrb({ state, size = 240, variant = 'gold' }: Props) {
+export function VoiceOrb({ state, size = 240 }: Props) {
+  const palette = useOrbPalette()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef(state)
   const rafRef = useRef(0)
@@ -50,8 +50,8 @@ export function VoiceOrb({ state, size = 240, variant = 'gold' }: Props) {
     })
     if (!gl) return
 
-    const frag = variant === 'night' ? FRAG_NIGHT : FRAG_GOLD
     const prog = gl.createProgram()!
+    const frag = FRAG_BY_FORM[palette.form]
     gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VERT))
     gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, frag))
     gl.linkProgram(prog)
@@ -70,6 +70,11 @@ export function VoiceOrb({ state, size = 240, variant = 'gold' }: Props) {
     const uIntensity = gl.getUniformLocation(prog, 'u_intensity')
     const uSpeed = gl.getUniformLocation(prog, 'u_speed')
     const uGlow = gl.getUniformLocation(prog, 'u_glow')
+
+    // Colours change only with the theme, which re-runs this effect.
+    gl.uniform3fv(gl.getUniformLocation(prog, 'u_core'), palette.core)
+    gl.uniform3fv(gl.getUniformLocation(prog, 'u_glow1'), palette.glow1)
+    gl.uniform3fv(gl.getUniformLocation(prog, 'u_glow2'), palette.glow2)
 
     const syncSize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -116,7 +121,7 @@ export function VoiceOrb({ state, size = 240, variant = 'gold' }: Props) {
       cancelAnimationFrame(rafRef.current)
       window.removeEventListener('mousemove', onMove)
     }
-  }, [size, variant])
+  }, [size, palette])
 
   const stage = size + 80
   const live = state === 'speaking' || state === 'listening'

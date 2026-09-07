@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { BrandMark } from '../components/BrandMark'
 import { GrainOverlay } from '../components/GrainOverlay'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { ThemePicker } from '../components/ThemePicker'
 import { VoiceOrb } from '../components/VoiceOrb'
 import { ZenParticles } from '../components/ZenParticles'
 import { useMicCapture } from '../hooks/useMicCapture'
 import { useOrbSize } from '../hooks/useOrbSize'
-import { useTheme } from '../theme/ThemeContext'
 import type { OrbState } from '../types/ws'
 import type { ShadowCoach, ShadowPrompt, ShadowResult } from '../types/memory'
 
@@ -72,7 +71,6 @@ function CoachBlock({ items, title }: { items: ShadowCoach[]; title: string }) {
 }
 
 export function ShadowPage({ initialPhrase, onBack }: Props) {
-  const { theme } = useTheme()
   const [prompts, setPrompts] = useState<ShadowPrompt[]>([])
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('idle')
@@ -267,7 +265,7 @@ export function ShadowPage({ initialPhrase, onBack }: Props) {
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ThemeToggle />
+          <ThemePicker />
           <button type="button" className="btn-end" onClick={onBack}>
             Hub
           </button>
@@ -276,7 +274,7 @@ export function ShadowPage({ initialPhrase, onBack }: Props) {
 
       <main className="shadow-main">
         <section className="shadow-stage">
-          <VoiceOrb state={orbState} size={orbSize} variant={theme} />
+          <VoiceOrb state={orbState} size={orbSize} />
 
           {current ? (
             <>
@@ -345,7 +343,7 @@ export function ShadowPage({ initialPhrase, onBack }: Props) {
           {result && (
             <section className="hub-panel-section">
               <p className="hub-kicker">Tu intento</p>
-              <p className="shadow-score">
+              <p className={`shadow-score ${result.close ? 'shadow-score-ok' : 'shadow-score-warn'}`}>
                 {result.hits} / {result.total} palabras
               </p>
               <p className="shadow-score-note">

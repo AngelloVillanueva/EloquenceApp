@@ -33,7 +33,7 @@ export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props)
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.55)',
+            background: 'var(--scrim)',
             zIndex: 49,
             display: 'none',
           }}

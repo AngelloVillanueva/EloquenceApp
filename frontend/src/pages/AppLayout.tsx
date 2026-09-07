@@ -7,14 +7,14 @@ import { LiveTranscriptBox } from '../components/LiveTranscriptBox'
 import { SCENARIOS, ScenarioSidebar } from '../components/ScenarioSidebar'
 import { SessionChip } from '../components/SessionChip'
 import { SessionTimer } from '../components/SessionTimer'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { ThemePicker } from '../components/ThemePicker'
 import { TtfaBadge } from '../components/TtfaBadge'
 import { VoiceOrb } from '../components/VoiceOrb'
 import { ZenParticles } from '../components/ZenParticles'
 import { useAudioPlayback } from '../hooks/useAudioPlayback'
 import { useMicCapture } from '../hooks/useMicCapture'
+import { useOrbSize } from '../hooks/useOrbSize'
 import { useWebSocket } from '../hooks/useWebSocket'
-import { useTheme } from '../theme/ThemeContext'
 
 const STATE_LABEL: Record<string, string> = {
   idle:      'Ready to speak',
@@ -30,21 +30,6 @@ const STATE_TELEM: Record<string, string> = {
   speaking:  'Voice output',
 }
 
-function useOrbSize(): number {
-  const [size, setSize] = useState(360)
-
-  useEffect(() => {
-    const apply = () => {
-      setSize(window.innerWidth < 640 ? 220 : 360)
-    }
-    apply()
-    window.addEventListener('resize', apply)
-    return () => window.removeEventListener('resize', apply)
-  }, [])
-
-  return size
-}
-
 interface AppLayoutProps {
   initialScenario?: string
   onBackHub?: () => void
@@ -56,8 +41,7 @@ export function AppLayout({
   onBackHub,
   onOpenShadow,
 }: AppLayoutProps) {
-  const { theme } = useTheme()
-  const orbSize = useOrbSize()
+  const orbSize = useOrbSize(360)
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(() =>
@@ -219,7 +203,7 @@ export function AppLayout({
             </button>
           )}
           <TtfaBadge ttfa={ws.ttfa} />
-          <ThemeToggle />
+          <ThemePicker />
           {sessionStarted && (
             <button
               type="button"
@@ -278,7 +262,7 @@ export function AppLayout({
               marginTop: recap ? 0 : sessionStarted && ws.transcript.length > 0 ? -48 : -24,
             }}
           >
-            <VoiceOrb state={displayState} size={recap ? Math.min(orbSize, 240) : orbSize} variant={theme} />
+            <VoiceOrb state={displayState} size={recap ? Math.min(orbSize, 240) : orbSize} />
 
             <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               <div style={{

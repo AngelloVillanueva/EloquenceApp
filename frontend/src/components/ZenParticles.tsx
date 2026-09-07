@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { hexToRgbChannels, readVar } from '../theme/palette'
 import { useTheme } from '../theme/ThemeContext'
 
 interface Particle {
@@ -26,7 +27,7 @@ export function ZenParticles() {
     let raf = 0
     const particles: Particle[] = []
     const mouse = { x: -999, y: -999 }
-    const color = theme === 'night' ? '224, 176, 128' : '232, 168, 124'
+    const color = hexToRgbChannels(readVar('--accent'))
 
     const resize = () => {
       width = canvas.width = window.innerWidth

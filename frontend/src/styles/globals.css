@@ -4,7 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─────────────── Studio Nocturne — Gold (default) ─────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   LAYER 1 — Theme palettes.
+   A theme declares only these ~24 raw values. Everything else
+   (glows, borders, glass, orb shadows) is derived in layer 2, so
+   adding a theme never means re-deriving a dozen rgba() literals.
+   `--orb-core/-glow-1/-glow-2/-form` are read by VoiceOrb: the orb
+   takes its colours from the theme instead of baking them in.
+   Grain lives here too — how much tooth a background has is part of
+   a theme's identity, and each backdrop luminance needs a different
+   amount to read as film rather than noise. Layer 2 must therefore
+   not declare it, or it would clobber every theme's value.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────── Studio Gold (default) ─────────────── */
 :root,
 [data-theme='gold'] {
   --bg:             #0E0C0A;
@@ -20,19 +33,164 @@
   --accent:         #E8A87C;
   --accent-bright:  #FFC69F;
   --accent-warm:    #D4884B;
-  --accent-glow:    rgba(232, 168, 124, 0.18);
-  --accent-neon:    rgba(232, 168, 124, 0.40);
-
-  --interrupt:      #690002;
-  --interrupt-hot:  #E85D4E;
-  --interrupt-dim:  rgba(105, 0, 2, 0.45);
-
-  --orb-shadow-idle: rgba(232, 168, 124, 0.15);
-  --orb-shadow-live: rgba(232, 168, 124, 0.32);
+  --on-accent:      #12100E;
 
   --border:         #2A241F;
-  --border-accent:  rgba(232, 168, 124, 0.30);
-  --blur-glass:     rgba(26, 23, 20, 0.60);
+  --interrupt:      #690002;
+
+  --orb-core:       #FFFCFA;
+  --orb-glow-1:     #E8A87C;
+  --orb-glow-2:     #D4884B;
+  --orb-form:       liquid;
+  --grain-blend:    overlay;
+  --grain-opacity:  0.26;
+}
+
+/* ─────────────── Porcelain Night — cool shell, champagne light ─────────────── */
+[data-theme='night'] {
+  --bg:             #08090C;
+  --bg-elevated:    #0E1014;
+  --surface:        #131519;
+  --surface-high:   #1A1D23;
+  --surface-hover:  #22262D;
+
+  --text:           #F2F4F7;
+  --text-muted:     #CDD5DE;
+  --text-subtle:    #8C96A3;
+
+  --accent:         #EBD9BC;
+  --accent-bright:  #FAEFD9;
+  --accent-warm:    #C6AB80;
+  --on-accent:      #14161A;
+
+  --border:         #232830;
+  --interrupt:      #7A1A14;
+
+  --orb-core:       #FFFFFF;
+  --orb-glow-1:     #E3D3B4;
+  --orb-glow-2:     #B99B72;
+  --orb-form:       core;
+  /* Cleanest of the dark set: porcelain wants less tooth than gold. */
+  --grain-opacity:  0.18;
+}
+
+/* ─────────────── Ember — rust on charcoal ─────────────── */
+[data-theme='ember'] {
+  --bg:             #0C0706;
+  --bg-elevated:    #140A08;
+  --surface:        #1A0F0C;
+  --surface-high:   #241612;
+  --surface-hover:  #2E1D17;
+
+  --text:           #F4E6E1;
+  --text-muted:     #E2C4BA;
+  --text-subtle:    #A5847A;
+
+  --accent:         #E4693F;
+  --accent-bright:  #FF9166;
+  --accent-warm:    #B33E1C;
+  --on-accent:      #140906;
+
+  --border:         #34211B;
+  --interrupt:      #6E1105;
+
+  --orb-core:       #FFF1E8;
+  --orb-glow-1:     #E4693F;
+  --orb-glow-2:     #A82F14;
+  --orb-form:       liquid;
+  /* Rust carries the most texture without turning muddy. */
+  --grain-opacity:  0.3;
+}
+
+/* ─────────────── Verdigris — oxidised copper ─────────────── */
+[data-theme='verdigris'] {
+  --bg:             #06100E;
+  --bg-elevated:    #0B1614;
+  --surface:        #101C19;
+  --surface-high:   #15251F;
+  --surface-hover:  #1C2F28;
+
+  --text:           #E3F0EC;
+  --text-muted:     #BCD8D0;
+  --text-subtle:    #85A099;
+
+  --accent:         #6FD3B4;
+  --accent-bright:  #9CEDD3;
+  --accent-warm:    #3AA287;
+  --on-accent:      #05120E;
+
+  --border:         #1D2E29;
+  --interrupt:      #6B1512;
+
+  --orb-core:       #F2FFFB;
+  --orb-glow-1:     #6FD3B4;
+  --orb-glow-2:     #2E8C74;
+  --orb-form:       core;
+  --grain-opacity:  0.22;
+}
+
+/* ─────────────── Daylight — warm paper, the only light theme ─────────────── */
+[data-theme='daylight'] {
+  --bg:             #F7F2EA;
+  --bg-elevated:    #FFFDF8;
+  --surface:        #EFE7DA;
+  --surface-high:   #E5DACA;
+  --surface-hover:  #DACDB9;
+
+  --text:           #221B14;
+  --text-muted:     #4B3E32;
+  --text-subtle:    #7B6C5C;
+
+  --accent:         #B0642B;
+  --accent-bright:  #CE7C3D;
+  --accent-warm:    #8A4A18;
+  --on-accent:      #FFF8F0;
+
+  --border:         #DDD1BE;
+  --interrupt:      #A8321F;
+
+  --orb-core:       #FFF4E8;
+  --orb-glow-1:     #E8A87C;
+  --orb-glow-2:     #BF6A2C;
+  --orb-form:       liquid;
+  /* `multiply` darkens instead of lifting, so paper needs the least. */
+  --grain-blend:    multiply;
+  --grain-opacity:  0.14;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LAYER 2 — Derived, semantic and non-colour tokens.
+   `:root` and `[data-theme='x']` have equal specificity, so anything
+   a theme needs to override must be declared *after* this block, not
+   in its palette above.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --accent-glow:    color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-neon:    color-mix(in srgb, var(--accent) 40%, transparent);
+  --border-accent:  color-mix(in srgb, var(--accent) 30%, transparent);
+  --blur-glass:     color-mix(in srgb, var(--surface) 60%, transparent);
+  --scrim:          color-mix(in srgb, var(--bg) 70%, transparent);
+
+  --orb-shadow-idle: color-mix(in srgb, var(--orb-glow-1) 15%, transparent);
+  --orb-shadow-live: color-mix(in srgb, var(--orb-glow-1) 32%, transparent);
+  --orb-blend:      screen;
+
+  --vignette:       rgba(0, 0, 0, 0.55);
+
+  --shadow-pop:     0 24px 48px rgba(0, 0, 0, 0.42);
+  --shadow-panel:   0 28px 60px rgba(0, 0, 0, 0.45);
+
+  /* Semantic status — deliberately not the accent, so "you got it" and
+     "brand" stop being the same colour. */
+  --ok:             #63C88E;
+  --warn:           #E5B769;
+  --danger:         #E85D4E;
+  --ok-soft:        color-mix(in srgb, var(--ok) 16%, transparent);
+  --warn-soft:      color-mix(in srgb, var(--warn) 16%, transparent);
+  --danger-soft:    color-mix(in srgb, var(--danger) 16%, transparent);
+
+  --interrupt-hot:  var(--danger);
+  --interrupt-dim:  color-mix(in srgb, var(--interrupt) 45%, transparent);
 
   --font-brand:     'Plus Jakarta Sans', system-ui, sans-serif;
   --font-ui:        'Plus Jakarta Sans', system-ui, sans-serif;
@@ -60,34 +218,20 @@
   --radius-full:    9999px;
 }
 
-/* ─────────────── Night mode ─────────────── */
-[data-theme='night'] {
-  --bg:             #0A0908;
-  --bg-elevated:    #120F0C;
-  --surface:        #161311;
-  --surface-high:   #1C1814;
-  --surface-hover:  #241E18;
+/* Daylight overrides layer-2 defaults, so they have to live down here.
+   Status colours darken to hold 4.5:1 against paper. */
+[data-theme='daylight'] {
+  --ok:             #1C7A4E;
+  --warn:           #8A6212;
+  --danger:         #B3392A;
 
-  --text:           #F5F0EB;
-  --text-muted:     #E0D4C8;
-  --text-subtle:    #A09688;
+  /* The shader is additive light on black, so `screen` would erase the orb
+     on paper. `normal` reads as an obsidian lens instead. */
+  --orb-blend:      normal;
+  --vignette:       rgba(92, 70, 44, 0.14);
 
-  --accent:         #E0B080;
-  --accent-bright:  #F0C49A;
-  --accent-warm:    #C88A4B;
-  --accent-glow:    rgba(224, 176, 128, 0.20);
-  --accent-neon:    rgba(224, 176, 128, 0.45);
-
-  --interrupt:      #E85D4E;
-  --interrupt-hot:  #E85D4E;
-  --interrupt-dim:  rgba(232, 93, 78, 0.40);
-
-  --orb-shadow-idle: rgba(224, 176, 128, 0.16);
-  --orb-shadow-live: rgba(224, 176, 128, 0.28);
-
-  --border:         #2A221B;
-  --border-accent:  rgba(224, 176, 128, 0.30);
-  --blur-glass:     rgba(18, 15, 12, 0.50);
+  --shadow-pop:     0 16px 32px rgba(92, 70, 44, 0.16);
+  --shadow-panel:   0 20px 44px rgba(92, 70, 44, 0.14);
 }
 
 /* ─────────────── Base ─────────────── */
@@ -128,8 +272,8 @@ html, body, #root {
   inset: 0;
   pointer-events: none;
   z-index: 90;
-  opacity: 0.5;
-  mix-blend-mode: overlay;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
   background-size: 180px 180px;
 }
@@ -174,7 +318,7 @@ html, body, #root {
   inset: 0;
   pointer-events: none;
   z-index: -1;
-  background: radial-gradient(125% 105% at 50% 45%, transparent 42%, rgba(0, 0, 0, 0.55) 100%);
+  background: radial-gradient(125% 105% at 50% 45%, transparent 42%, var(--vignette) 100%);
 }
 
 /* ─────────────── Top bar ─────────────── */
@@ -185,7 +329,7 @@ html, body, #root {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  border-bottom: 1px solid #1C1814;
+  border-bottom: 1px solid var(--border);
   position: relative;
   z-index: 60;
   background: color-mix(in srgb, var(--bg) 90%, transparent);
@@ -212,6 +356,69 @@ html, body, #root {
   border-color: var(--border-accent);
   background: var(--surface);
 }
+
+/* ─────────────── Theme picker ─────────────── */
+.theme-picker { position: relative; }
+
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 120;
+  width: 232px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-pop);
+  animation: fade-in 0.14s ease;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--fs-body-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+
+.theme-option:hover { background: var(--surface); color: var(--text); }
+
+.theme-option-active {
+  border-color: var(--border-accent);
+  background: var(--surface-high);
+  color: var(--text);
+}
+
+.theme-option-label { flex: 1; min-width: 0; }
+
+.theme-option-check { color: var(--accent); flex-shrink: 0; }
+
+/* The swatch carries its own `data-theme`, so the preview colours come
+   straight from that theme's tokens — no palette duplicated in JS. */
+.theme-swatch {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 34px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.theme-swatch i { display: block; flex: 1; }
+.theme-swatch i:nth-child(1) { background: var(--bg); }
+.theme-swatch i:nth-child(2) { background: var(--surface-high); }
+.theme-swatch i:nth-child(3) { background: var(--accent); }
 
 .session-chip {
   max-width: min(280px, 30vw);
@@ -301,7 +508,7 @@ html, body, #root {
   position: relative;
   border-radius: 50%;
   overflow: hidden;
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--orb-blend);
   opacity: 0.94;
   transition: transform 1s ease, box-shadow 0.6s;
 }
@@ -338,7 +545,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-pop);
 }
 
 .transcript-card::before {
@@ -360,15 +567,10 @@ html, body, #root {
   text-transform: uppercase;
   color: var(--accent);
   background: var(--surface-high);
-  border: 1px solid #51443C;
+  border: 1px solid var(--border-accent);
   border-radius: 2px;
   padding: 4px 8px;
   flex-shrink: 0;
-}
-
-[data-theme='night'] .chip {
-  background: rgba(0, 0, 0, 0.3);
-  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 /* ─────────────── Buttons ─────────────── */
@@ -376,21 +578,21 @@ html, body, #root {
   padding: 13px 36px;
   border-radius: var(--radius-full);
   background: var(--accent);
-  color: #12100E;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  color: var(--on-accent);
+  font-family: var(--font-ui);
   font-weight: 600;
   font-size: var(--fs-caption);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(232, 168, 124, 0.32);
+  box-shadow: 0 4px 14px var(--accent-neon);
   transition: transform 0.15s, box-shadow 0.2s;
 }
 
 .btn-start:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(232, 168, 124, 0.28);
+  box-shadow: 0 6px 22px var(--accent-neon);
 }
 
 .btn-start:active { transform: scale(0.98); }
@@ -465,7 +667,7 @@ html, body, #root {
   background: color-mix(in srgb, var(--bg-elevated) 82%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-panel);
   text-align: left;
 }
 
@@ -474,12 +676,14 @@ html, body, #root {
   border-top: 1px solid var(--border);
 }
 
+/* Section labels are structure, not action: the accent is reserved for
+   things you can click, so the primary CTA has no rivals on screen. */
 .hub-kicker {
   font-size: var(--fs-overline);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--text-subtle);
   margin-bottom: 8px;
 }
 
@@ -728,7 +932,7 @@ html, body, #root {
 
 .shadow-word-ok { color: var(--text); }
 .shadow-word-miss {
-  color: var(--interrupt-hot);
+  color: var(--danger);
   text-decoration: underline;
   text-decoration-style: wavy;
   text-underline-offset: 6px;
@@ -782,7 +986,7 @@ html, body, #root {
 
 .shadow-error {
   margin-top: 14px;
-  color: var(--interrupt-hot);
+  color: var(--danger);
   font-size: var(--fs-body-sm);
   line-height: var(--lh-normal);
 }
@@ -799,6 +1003,9 @@ html, body, #root {
   color: var(--text);
   line-height: 1.1;
 }
+
+.shadow-score-ok   { color: var(--ok); }
+.shadow-score-warn { color: var(--warn); }
 
 .shadow-score-note {
   font-size: var(--fs-body-sm);

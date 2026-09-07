@@ -122,12 +122,44 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 
 ## 9. UI (Studio Nocturne)
 
-| Tema | Orbe | Fondo |
-|------|------|--------|
-| Gold (default) | ANIMATION_12 líquido ámbar | `#0E0C0A` |
-| Night | ANIMATION_17 núcleo crema + anillos | `#0A0908` |
+**Sistema de themes (2026-09-07).** Cinco temas en `data-theme`, elegidos desde `ThemePicker`
+en la topbar y persistidos en `localStorage` (`eloquence-theme`; lee `elevate-theme` legacy una vez).
 
-Misma topbar, mismas fuentes (Plus Jakarta + JetBrains Mono), mismos ticks alrededor del orbe. Toggle luna/sol en `localStorage` (`eloquence-theme`; still reads legacy `elevate-theme` once).
+| Tema | Fondo | Acento | Forma de orbe |
+|------|-------|--------|---------------|
+| Studio Gold (default) | `#0E0C0A` | ámbar `#E8A87C` | liquid (ANIMATION_12) |
+| Porcelain Night | `#08090C` frío | champán `#EBD9BC` | core (ANIMATION_17) |
+| Ember | `#0C0706` | óxido `#E4693F` | liquid |
+| Verdigris | `#06100E` | verdín `#6FD3B4` | core |
+| Daylight | papel `#F7F2EA` | terracota `#B0642B` | liquid, blend `normal` |
+
+Tokens en dos capas dentro de `globals.css`:
+
+- **Capa 1 (paleta).** ~24 valores crudos por tema: fondos, textos, acento, `--on-accent`,
+  `--border`, `--interrupt`, la paleta del orbe (`--orb-core`, `--orb-glow-1/2`, `--orb-form`)
+  y el grano (`--grain-opacity`, `--grain-blend`).
+- **Capa 2 (derivados + semánticos).** `--accent-glow/neon`, `--border-accent`, `--blur-glass`,
+  `--scrim`, `--orb-shadow-*`, `--shadow-pop/panel`, vignette, y el eje semántico
+  `--ok / --warn / --danger` (+ `-soft`), que ya **no** es el acento: "lo lograste" y "marca"
+  dejaron de ser el mismo color.
+
+El grano vive en la capa 1 porque cuánta textura tiene un fondo es parte de la identidad del
+tema, y cada luminancia necesita distinta cantidad para leerse como película y no como ruido:
+Gold `.26`, Porcelain Night `.18`, Ember `.30`, Verdigris `.22`, Daylight `.14` con `multiply`
+(sobre papel el grano oscurece en vez de levantar, así que necesita mucho menos).
+La capa 2 **no** puede declararlo o pisaría el valor de cada tema.
+
+`:root` y `[data-theme='x']` empatan en especificidad, así que **cualquier override de la capa 2
+va después del bloque `:root`**, no en la paleta del tema (ver Daylight). Ponerlo arriba lo pisa.
+
+Los shaders del orbe reciben el color por uniform (`u_core`, `u_glow1`, `u_glow2`) y
+`VoiceOrb` los lee de los tokens CSS con `theme/palette.ts`, así que un tema nuevo es solo un
+bloque de tokens: nada de GLSL. `ThemeContext` escribe `data-theme` **antes** del re-render
+(la fuente de verdad es el DOM, el state sólo lo espeja) porque el orbe y `ZenParticles`
+muestrean `getComputedStyle`; con un efecto habrían leído el tema saliente.
+
+El acento quedó reservado para lo accionable: los kickers de sección pasaron a `--text-subtle`
+para que el CTA primario no compita con seis etiquetas ámbar por pantalla.
 
 Fuentes de diseño: `ElevateAI Desing/` (gold standard, night standard, Orb 2, Obr Nightmode, mobile).
 
@@ -150,7 +182,8 @@ app/                      FastAPI (STT, LLM, TTS, /ws/audio, memory)
 app/prompts/tutor_system.py   B2 + scenario_instruction()
 app/services/memory.py        SQLite
 frontend/                 Vite + React (:5173)
-frontend/src/orb/         shaders gold / night
+frontend/src/orb/         shaders liquid / core (color por uniform)
+frontend/src/theme/       ThemeContext (5 temas) + palette.ts (tokens → WebGL)
 tests/                    protocol + memory (sin GPU)
 docs/architecture.md      sistema + §6.3 escenarios + §9 SQLite
 docs/design-identity.md   tokens Studio Nocturne

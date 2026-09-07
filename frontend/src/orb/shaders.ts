@@ -1,4 +1,10 @@
-/** Vertex shared by gold (ANIMATION_12) and night (ANIMATION_17) orbs. */
+/**
+ * Two orb forms, both taking their palette from uniforms so a theme can
+ * recolour the orb from CSS tokens (`--orb-core`, `--orb-glow-1/2`)
+ * without touching GLSL.
+ */
+
+/** Vertex shared by liquid (ANIMATION_12) and core (ANIMATION_17) orbs. */
 export const VERT = `
 attribute vec2 a_position;
 varying vec2 v_texCoord;
@@ -35,8 +41,14 @@ float snoise(vec2 v){
 }
 `
 
-/** Liquid gold — ElevateAI Desing/Orb 2 + gold standard ANIMATION_12. */
-export const FRAG_GOLD = `
+const COLOR_UNIFORMS = `
+uniform vec3 u_core;
+uniform vec3 u_glow1;
+uniform vec3 u_glow2;
+`
+
+/** Liquid — ElevateAI Desing/Orb 2 + gold standard ANIMATION_12. */
+const FRAG_LIQUID = `
 precision highp float;
 varying vec2 v_texCoord;
 uniform float u_time;
@@ -45,6 +57,7 @@ uniform vec2 u_mouse;
 uniform float u_intensity;
 uniform float u_speed;
 uniform float u_glow;
+${COLOR_UNIFORMS}
 ${SNOISE}
 void main() {
     vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
@@ -57,17 +70,14 @@ void main() {
     float radius = 0.40 + 0.08 * u_intensity + 0.12 * combinedNoise;
     float d = length(uv) - radius;
 
-    vec3 colorGold = vec3(0.91, 0.66, 0.49);
-    vec3 colorAmber = vec3(0.83, 0.53, 0.29);
-
     float core = (0.018 * u_glow) / abs(d + 0.015);
-    vec3 finalColor = mix(colorGold, colorAmber, combinedNoise * 0.5 + 0.5) * core;
+    vec3 finalColor = mix(u_glow1, u_glow2, combinedNoise * 0.5 + 0.5) * core;
 
     float shimmer = pow(max(0.0, snoise(uv * 10.0 + t * 2.0)), 5.0);
-    finalColor += colorGold * shimmer * 0.8 * u_intensity * smoothstep(0.1, -0.1, d);
+    finalColor += mix(u_glow1, u_core, 0.35) * shimmer * 0.8 * u_intensity * smoothstep(0.1, -0.1, d);
 
     float bloom = smoothstep(0.8, 0.0, length(uv));
-    finalColor += vec3(0.06, 0.05, 0.04) * bloom * u_glow;
+    finalColor += u_glow2 * 0.075 * bloom * u_glow;
 
     float grain = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
     finalColor += (grain - 0.5) * 0.02;
@@ -75,8 +85,8 @@ void main() {
     gl_FragColor = vec4(finalColor, 1.0);
 }`
 
-/** Cream core + waveform rings — ElevateAI Desing/Obr Nightmode ANIMATION_17. */
-export const FRAG_NIGHT = `
+/** Bright core + waveform rings — ElevateAI Desing/Obr Nightmode ANIMATION_17. */
+const FRAG_CORE = `
 precision highp float;
 varying vec2 v_texCoord;
 uniform float u_time;
@@ -85,6 +95,7 @@ uniform vec2 u_mouse;
 uniform float u_intensity;
 uniform float u_speed;
 uniform float u_glow;
+${COLOR_UNIFORMS}
 ${SNOISE}
 void main() {
     vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
@@ -93,26 +104,27 @@ void main() {
     float n = snoise(uv * 1.5 + t * 0.4);
     float d = length(uv) - (0.36 + 0.08 * u_intensity + 0.10 * n);
 
-    vec3 coreColor = vec3(1.0, 0.99, 0.98);
-    vec3 bloomColor1 = vec3(0.88, 0.69, 0.50);
-    vec3 bloomColor2 = vec3(0.78, 0.54, 0.29);
-
     float glow = (0.018 * u_glow) / abs(d + 0.015);
-    vec3 finalColor = mix(bloomColor1, bloomColor2, n * 0.5 + 0.5) * glow;
-    finalColor += coreColor * smoothstep(0.1, -0.1, d) * 0.8 * u_intensity;
+    vec3 finalColor = mix(u_glow1, u_glow2, n * 0.5 + 0.5) * glow;
+    finalColor += u_core * smoothstep(0.1, -0.1, d) * 0.8 * u_intensity;
 
     float angle = atan(uv.y, uv.x);
     float pulse = snoise(vec2(angle * 2.0, t * 2.0));
     float wave = 0.5 + 0.5 * sin(angle * 16.0 + t * 8.0) * pulse * u_intensity;
     float ringRadius = 0.52 + 0.05 * u_intensity + 0.04 * wave;
     float waveCircle = abs(length(uv) - ringRadius) - 0.002;
-    finalColor += bloomColor1 * (0.002 / abs(waveCircle + 0.006)) * 0.55 * u_glow;
+    finalColor += u_glow1 * (0.002 / abs(waveCircle + 0.006)) * 0.55 * u_glow;
 
     float ambient = smoothstep(1.5, 0.0, length(uv));
-    finalColor += vec3(0.1, 0.07, 0.05) * ambient * u_glow;
+    finalColor += u_glow2 * 0.12 * ambient * u_glow;
 
     float grain = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
     finalColor += (grain - 0.5) * 0.03;
 
     gl_FragColor = vec4(finalColor, 1.0);
 }`
+
+export const FRAG_BY_FORM = {
+  liquid: FRAG_LIQUID,
+  core: FRAG_CORE,
+} as const

@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import { BrandMark } from '../components/BrandMark'
 import { GrainOverlay } from '../components/GrainOverlay'
 import { SCENARIOS } from '../components/ScenarioSidebar'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { ThemePicker } from '../components/ThemePicker'
 import { VoiceOrb } from '../components/VoiceOrb'
 import { ZenParticles } from '../components/ZenParticles'
 import { useOrbSize } from '../hooks/useOrbSize'
-import { useTheme } from '../theme/ThemeContext'
 import type { MemorySnapshot } from '../types/memory'
 
 interface Props {
@@ -39,7 +38,6 @@ function Stat({ value, label }: { value: string | number; label: string }) {
 }
 
 export function HubPage({ onStart, onShadow }: Props) {
-  const { theme } = useTheme()
   const orbSize = useOrbSize(208)
   const [selected, setSelected] = useState('free')
   const [snap, setSnap] = useState<MemorySnapshot | null>(null)
@@ -73,13 +71,13 @@ export function HubPage({ onStart, onShadow }: Props) {
               {snap.streak_days}d streak
             </span>
           )}
-          <ThemeToggle />
+          <ThemePicker />
         </div>
       </header>
 
       <main className="hub-main">
         <section className="hub-hero">
-          <VoiceOrb state="idle" size={orbSize} variant={theme} />
+          <VoiceOrb state="idle" size={orbSize} />
 
           <p className="hub-kicker">Studio ready</p>
           <h1 className="hub-hello">
