@@ -7,9 +7,9 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app import __version__
@@ -111,6 +111,8 @@ def create_app() -> FastAPI:
             "phase": 4,
             "ws_audio": "/ws/audio",
             "memory": "/api/memory",
+            "tts": "/api/tts",
+            "shadow": "/api/shadow/prompts",
             "target_pipeline_latency_s": settings.target_pipeline_latency_s,
             "capture_sample_rate": 16000,
             "ollama": {
@@ -148,6 +150,77 @@ def create_app() -> FastAPI:
         mem = get_memory()
         user_id = mem.ensure_default_user()
         return mem.snapshot(user_id)
+
+    @app.get("/api/shadow/prompts")
+    def shadow_prompts() -> dict[str, Any]:
+        mem = get_memory()
+        user_id = mem.ensure_default_user()
+        return {"prompts": mem.shadow_prompts(user_id)}
+
+    @app.post("/api/shadow/gloss")
+    async def shadow_gloss(payload: dict[str, Any]) -> dict[str, Any]:
+        """Spanish meaning for a phrase — Ollama, same local model as the tutor."""
+        import asyncio
+
+        from app.services.shadow import GLOSS_SYSTEM, clean_gloss
+
+        text = str(payload.get("text") or "").strip()
+        if not text:
+            raise HTTPException(status_code=400, detail="text is required")
+        if len(text) > 200:
+            raise HTTPException(status_code=400, detail="text too long")
+        runtime = get_runtime()
+        try:
+            result = await asyncio.to_thread(
+                runtime.llm.chat, text, system=GLOSS_SYSTEM
+            )
+        except Exception as exc:  # noqa: BLE001 — gloss is optional garnish
+            logger.warning("Gloss failed for %r: %s", text[:60], exc)
+            return {"es": ""}
+        return {"es": clean_gloss(result.text)}
+
+    @app.post("/api/tts")
+    async def speak_text(payload: dict[str, Any]) -> Response:
+        text = str(payload.get("text") or "").strip()
+        if not text:
+            raise HTTPException(status_code=400, detail="text is required")
+        if len(text) > 400:
+            raise HTTPException(status_code=400, detail="text too long")
+        from app.ws.audio_utils import write_wav_bytes
+
+        runtime = get_runtime()
+        await runtime.warm(include_llm=False)
+        result = await runtime.run_on_gpu(runtime.tts.synthesize_pcm, text)
+        wav = write_wav_bytes(result.pcm16 or b"", result.sample_rate)
+        return Response(content=wav, media_type="audio/wav")
+
+    @app.post("/api/shadow/evaluate")
+    async def shadow_evaluate(payload: dict[str, Any]) -> dict[str, Any]:
+        import base64
+
+        from app.services.shadow import score_repeat
+        from app.ws.audio_utils import pcm16_bytes_to_float32
+
+        target = str(payload.get("target") or "").strip()
+        raw = payload.get("pcm_b64") or ""
+        if not target:
+            raise HTTPException(status_code=400, detail="target is required")
+        if not raw:
+            raise HTTPException(status_code=400, detail="pcm_b64 is required")
+        try:
+            pcm = base64.b64decode(raw)
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status_code=400, detail="invalid pcm_b64") from exc
+        if len(pcm) < 3200:
+            raise HTTPException(status_code=400, detail="audio too short")
+        sample_rate = int(payload.get("sample_rate") or 16000)
+        audio = pcm16_bytes_to_float32(pcm)
+        runtime = get_runtime()
+        await runtime.warm(include_llm=False)
+        tr = await runtime.run_on_gpu(
+            runtime.stt.transcribe_array, audio, sample_rate=sample_rate
+        )
+        return score_repeat(target, tr.text)
 
     @app.websocket("/ws/audio")
     async def ws_audio(websocket: WebSocket) -> None:

@@ -45,7 +45,17 @@ function useOrbSize(): number {
   return size
 }
 
-export function AppLayout() {
+interface AppLayoutProps {
+  initialScenario?: string
+  onBackHub?: () => void
+  onOpenShadow?: (phrase: string) => void
+}
+
+export function AppLayout({
+  initialScenario = 'free',
+  onBackHub,
+  onOpenShadow,
+}: AppLayoutProps) {
   const { theme } = useTheme()
   const orbSize = useOrbSize()
 
@@ -53,7 +63,7 @@ export function AppLayout() {
   const [feedbackOpen, setFeedbackOpen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth > 768 : true,
   )
-  const [scenario, setScenario] = useState('free')
+  const [scenario, setScenario] = useState(initialScenario)
   const [sessionStarted, setSessionStarted] = useState(false)
   const [recap, setRecap] = useState<{
     durationS: number
@@ -150,7 +160,7 @@ export function AppLayout() {
   }, [playback, mic, ws, scenarioLabel])
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+    <div className="studio-shell" style={{ overflow: 'hidden' }}>
       <GrainOverlay />
 
       <header className="studio-topbar">
@@ -177,7 +187,17 @@ export function AppLayout() {
             </svg>
           </button>
 
-          <BrandMark />
+          <button
+            type="button"
+            onClick={() => {
+              if (sessionStarted) handleEnd()
+              onBackHub?.()
+            }}
+            title="Back to Hub"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: onBackHub ? 'pointer' : 'default' }}
+          >
+            <BrandMark />
+          </button>
           <SessionChip title={scenarioLabel} sub={scenarioSub} />
         </div>
 
@@ -186,6 +206,18 @@ export function AppLayout() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {onBackHub && (
+            <button
+              type="button"
+              className="btn-end"
+              onClick={() => {
+                if (sessionStarted) handleEnd()
+                onBackHub()
+              }}
+            >
+              Hub
+            </button>
+          )}
           <TtfaBadge ttfa={ws.ttfa} />
           <ThemeToggle />
           {sessionStarted && (
@@ -214,6 +246,12 @@ export function AppLayout() {
           log={ws.feedbackLog}
           open={feedbackOpen}
           onToggle={() => setFeedbackOpen(v => !v)}
+          onPractice={onOpenShadow
+            ? (phrase) => {
+                if (sessionStarted) handleEnd()
+                onOpenShadow(phrase)
+              }
+            : undefined}
         />
 
         <main
@@ -225,7 +263,6 @@ export function AppLayout() {
             justifyContent: 'center',
             position: 'relative',
             overflow: 'hidden',
-            background: 'var(--bg)',
           }}
           onClick={() => { if (sidebarOpen) setSidebarOpen(false) }}
         >
@@ -238,16 +275,16 @@ export function AppLayout() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              marginTop: sessionStarted && ws.transcript.length > 0 ? -48 : -24,
+              marginTop: recap ? 0 : sessionStarted && ws.transcript.length > 0 ? -48 : -24,
             }}
           >
-            <VoiceOrb state={displayState} size={orbSize} variant={theme} />
+            <VoiceOrb state={displayState} size={recap ? Math.min(orbSize, 240) : orbSize} variant={theme} />
 
             <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               <div style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                letterSpacing: '0.2em',
+                fontSize: 'var(--fs-caption)',
+                letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 color: 'var(--accent)',
                 opacity: 0.7,
@@ -256,7 +293,7 @@ export function AppLayout() {
               </div>
               <p style={{
                 fontFamily: 'var(--font-ui)',
-                fontSize: 16,
+                fontSize: 'var(--fs-title)',
                 color: isConnected ? 'var(--text)' : 'var(--text-subtle)',
                 letterSpacing: '0.04em',
                 opacity: 0.9,
@@ -287,20 +324,22 @@ export function AppLayout() {
 
             {!sessionStarted && recap && (
               <div
-                className="animate-fade-in"
+                className="session-recap animate-fade-in"
                 style={{
-                  marginTop: 28,
+                  marginTop: 20,
                   width: 'min(320px, calc(100vw - 48px))',
                   padding: '20px 22px',
                   borderRadius: 14,
                   border: '1px solid var(--border)',
                   background: 'var(--surface)',
                   textAlign: 'center',
+                  position: 'relative',
+                  zIndex: 25,
                 }}
               >
                 <p
                   style={{
-                    fontSize: 10,
+                    fontSize: 'var(--fs-overline)',
                     fontWeight: 600,
                     letterSpacing: '0.12em',
                     textTransform: 'uppercase',
@@ -310,7 +349,7 @@ export function AppLayout() {
                 >
                   Session closed
                 </p>
-                <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 14 }}>
+                <p style={{ fontSize: 'var(--fs-title)', fontWeight: 600, color: 'var(--text)', marginBottom: 14 }}>
                   {recap.scenario}
                 </p>
                 <div
@@ -319,7 +358,7 @@ export function AppLayout() {
                     justifyContent: 'space-between',
                     gap: 12,
                     fontFamily: 'var(--font-mono)',
-                    fontSize: 12,
+                    fontSize: 'var(--fs-body-sm)',
                     letterSpacing: '0.04em',
                     color: 'var(--text-subtle)',
                     marginBottom: 18,
@@ -339,20 +378,30 @@ export function AppLayout() {
                 <button className="btn-start" onClick={() => void handleStart()}>
                   Start Session
                 </button>
+                {onBackHub && (
+                  <button
+                    type="button"
+                    className="btn-end"
+                    style={{ marginTop: 10 }}
+                    onClick={onBackHub}
+                  >
+                    Back to Hub
+                  </button>
+                )}
               </div>
             )}
 
             {sessionStarted && ws.transcript.length === 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 16 }}>
                 {mic.status === 'capturing' && !isProcessing && (
-                  <p style={{ fontSize: 12, color: 'var(--text-subtle)', textAlign: 'center' }}>
+                  <p style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--text-subtle)', textAlign: 'center' }}>
                     Speak naturally — pause ~1.5s to send
                     <button
                       onClick={handleDoneSpeaking}
                       style={{
                         display: 'block',
                         margin: '8px auto 0',
-                        fontSize: 11,
+                        fontSize: 'var(--fs-body-sm)',
                         color: 'var(--accent)',
                         background: 'none',
                         border: 'none',
@@ -366,7 +415,7 @@ export function AppLayout() {
                   </p>
                 )}
                 {isProcessing && (
-                  <p style={{ fontSize: 12, color: 'var(--text-subtle)' }}>
+                  <p style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--text-subtle)' }}>
                     Esc / Space to interrupt
                   </p>
                 )}
@@ -374,32 +423,34 @@ export function AppLayout() {
             )}
 
             {mic.error && (
-              <p style={{ fontSize: 11, color: 'var(--interrupt-hot)', marginTop: 12, textAlign: 'center' }}>
+              <p style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--interrupt-hot)', marginTop: 12, textAlign: 'center' }}>
                 Mic error: {mic.error}
               </p>
             )}
             {ws.status === 'error' && (
-              <p style={{ fontSize: 11, color: 'var(--interrupt-hot)', marginTop: 12, textAlign: 'center' }}>
+              <p style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--interrupt-hot)', marginTop: 12, textAlign: 'center' }}>
                 Connection error — start the backend on port 8000
               </p>
             )}
           </div>
 
-          <div
-            className="transcript-dock"
-            style={{
-              position: 'absolute',
-              bottom: 32,
-              zIndex: 20,
-              left: '50%',
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <LiveTranscriptBox
-              lines={ws.transcript}
-              thinking={ws.orbState === 'thinking'}
-            />
-          </div>
+          {!recap && (
+            <div
+              className="transcript-dock"
+              style={{
+                position: 'absolute',
+                bottom: 32,
+                zIndex: 20,
+                left: '50%',
+                transform: 'translateX(-50%)',
+              }}
+            >
+              <LiveTranscriptBox
+                lines={ws.transcript}
+                thinking={ws.orbState === 'thinking'}
+              />
+            </div>
+          )}
         </main>
       </div>
     </div>

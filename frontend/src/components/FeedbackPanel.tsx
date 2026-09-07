@@ -5,6 +5,7 @@ interface Props {
   log: FeedbackLogEntry[]
   open: boolean
   onToggle: () => void
+  onPractice?: (phrase: string) => void
 }
 
 function Item({
@@ -18,9 +19,9 @@ function Item({
     <div style={{ marginBottom: 10 }}>
       <div
         style={{
-          fontSize: 10,
+          fontSize: 'var(--fs-overline)',
           fontWeight: 600,
-          letterSpacing: '0.1em',
+          letterSpacing: '0.12em',
           textTransform: 'uppercase',
           color: 'var(--accent)',
           marginBottom: 6,
@@ -42,8 +43,8 @@ function Card({ children }: { children: ReactNode }) {
         borderRadius: 10,
         padding: '10px 12px',
         marginBottom: 6,
-        fontSize: 13,
-        lineHeight: 1.45,
+        fontSize: 'var(--fs-body-sm)',
+        lineHeight: 'var(--lh-normal)',
         color: 'var(--text-muted)',
       }}
     >
@@ -52,7 +53,15 @@ function Card({ children }: { children: ReactNode }) {
   )
 }
 
-function TurnBlock({ entry, index }: { entry: FeedbackLogEntry; index: number }) {
+function TurnBlock({
+  entry,
+  index,
+  onPractice,
+}: {
+  entry: FeedbackLogEntry
+  index: number
+  onPractice?: (phrase: string) => void
+}) {
   const fb = entry.payload
   return (
     <div style={{ marginBottom: 16 }}>
@@ -67,7 +76,7 @@ function TurnBlock({ entry, index }: { entry: FeedbackLogEntry; index: number })
       )}
       <p
         style={{
-          fontSize: 10,
+          fontSize: 'var(--fs-overline)',
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
           color: 'var(--text-subtle)',
@@ -133,6 +142,25 @@ function TurnBlock({ entry, index }: { entry: FeedbackLogEntry; index: number })
               {(p as { tip?: string }).tip && (
                 <div style={{ marginTop: 4 }}>{(p as { tip?: string }).tip}</div>
               )}
+              {onPractice && (p as { word?: string }).word && (
+                <button
+                  type="button"
+                  onClick={() => onPractice(String((p as { word?: string }).word))}
+                  style={{
+                    marginTop: 8,
+                    fontSize: 11,
+                    color: 'var(--accent)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 2,
+                  }}
+                >
+                  Listen & Repeat
+                </button>
+              )}
             </Card>
           ))}
         </Item>
@@ -141,9 +169,9 @@ function TurnBlock({ entry, index }: { entry: FeedbackLogEntry; index: number })
       {fb.notes?.trim() && (
         <p
           style={{
-            fontSize: 13,
+            fontSize: 'var(--fs-body-sm)',
             color: 'var(--text-subtle)',
-            lineHeight: 1.45,
+            lineHeight: 'var(--lh-normal)',
             marginTop: 4,
           }}
         >
@@ -161,7 +189,7 @@ export function slipCount(log: FeedbackLogEntry[]): number {
   }, 0)
 }
 
-export function FeedbackPanel({ log, open, onToggle }: Props) {
+export function FeedbackPanel({ log, open, onToggle, onPractice }: Props) {
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -187,7 +215,7 @@ export function FeedbackPanel({ log, open, onToggle }: Props) {
           background: 'var(--surface)',
           color: 'var(--accent)',
           fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif',
-          fontSize: 11,
+          fontSize: 'var(--fs-overline)',
           fontWeight: 600,
           letterSpacing: '0.04em',
           cursor: 'pointer',
@@ -218,16 +246,16 @@ export function FeedbackPanel({ log, open, onToggle }: Props) {
         <div style={{ padding: '16px 16px 10px' }}>
           <p
             style={{
-              fontSize: 10,
+              fontSize: 'var(--fs-overline)',
               fontWeight: 600,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: 'var(--accent)',
             }}
           >
             Coach notes
           </p>
-          <p style={{ fontSize: 12, color: 'var(--text-subtle)', marginTop: 4 }}>
+          <p style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--text-subtle)', marginTop: 4 }}>
             Corrections stay visual — never spoken
           </p>
         </div>
@@ -235,12 +263,12 @@ export function FeedbackPanel({ log, open, onToggle }: Props) {
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 24px' }}>
           {empty && (
-            <p style={{ fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--text-subtle)', lineHeight: 'var(--lh-normal)' }}>
               After each turn, grammar, phrasing upgrades, and pronunciation tips appear here.
             </p>
           )}
           {log.map((entry, i) => (
-            <TurnBlock key={entry.id} entry={entry} index={i} />
+            <TurnBlock key={entry.id} entry={entry} index={i} onPractice={onPractice} />
           ))}
           <div ref={endRef} />
         </div>

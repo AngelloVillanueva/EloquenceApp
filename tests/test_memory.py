@@ -36,7 +36,9 @@ def test_memory_brief_and_upsert(tmp_path: Path) -> None:
                     "note": "C1",
                 }
             ],
-            "pronunciation": [],
+            "pronunciation": [
+                {"word": "elaborate", "tip": "Stress on lab"}
+            ],
             "notes": "",
         },
     )
@@ -63,6 +65,12 @@ def test_memory_brief_and_upsert(tmp_path: Path) -> None:
     snap = mem.snapshot(uid)
     assert snap["sessions"] == 1
     assert snap["errors"][0]["count"] == 2
+    assert snap["last_session"] is not None
+    assert snap["last_session"]["scenario"] == "job"
+    assert "sessions_week" in snap
+    assert snap["slip_count"] >= 2
+    prompts = mem.shadow_prompts(uid)
+    assert prompts[0]["text"] == "elaborate"
     mem.close()
 
 

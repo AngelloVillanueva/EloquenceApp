@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import sqlite3
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -65,6 +65,73 @@ CREATE INDEX IF NOT EXISTS idx_vocab_user ON vocab(user_id, last_seen_at DESC);
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _iso_day(stamp: str | None) -> str | None:
+    if not stamp:
+        return None
+    return str(stamp)[:10]
+
+
+def _streak(days: list[str], today: str) -> int:
+    have = {d for d in days if d}
+    if not have:
+        return 0
+    cursor = datetime.fromisoformat(today).date()
+    latest = max(datetime.fromisoformat(d).date() for d in have)
+    if latest < cursor - timedelta(days=1):
+        return 0
+    n = 0
+    day = latest
+    while day.isoformat() in have:
+        n += 1
+        day -= timedelta(days=1)
+    return n
+
+
+def _hub_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    week_from = now - timedelta(days=7)
+    today = now.date().isoformat()
+    minutes_total = 0.0
+    minutes_week = 0.0
+    sessions_week = 0
+    days: list[str] = []
+    ended = [r for r in rows if r.get("ended_at")]
+    for r in ended:
+        dur = float(r.get("duration_s") or 0)
+        minutes_total += dur
+        ended_at = str(r.get("ended_at") or "")
+        try:
+            when = datetime.fromisoformat(ended_at)
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=timezone.utc)
+            if when >= week_from:
+                minutes_week += dur
+                sessions_week += 1
+        except ValueError:
+            pass
+        day = _iso_day(ended_at)
+        if day:
+            days.append(day)
+    last = ended[0] if ended else None
+    recent = [
+        {
+            "scenario": r.get("scenario"),
+            "duration_s": r.get("duration_s"),
+            "ttfa_avg": r.get("ttfa_avg"),
+            "ended_at": r.get("ended_at"),
+        }
+        for r in ended[:5]
+    ]
+    return {
+        "sessions_week": sessions_week,
+        "minutes_total": int(round(minutes_total / 60)),
+        "minutes_week": int(round(minutes_week / 60)),
+        "streak_days": _streak(days, today),
+        "last_session": last,
+        "recent_sessions": recent,
+    }
 
 
 class MemoryService:
@@ -282,7 +349,7 @@ class MemoryService:
             errors = [
                 dict(r)
                 for r in self._conn.execute(
-                    "SELECT kind, original, correction, count FROM errors "
+                    "SELECT kind, original, correction, note, count FROM errors "
                     "WHERE user_id = ? ORDER BY count DESC LIMIT 8",
                     (user_id,),
                 )
@@ -295,13 +362,40 @@ class MemoryService:
                     (user_id,),
                 )
             ]
+            session_rows = [
+                dict(r)
+                for r in self._conn.execute(
+                    "SELECT scenario, duration_s, ttfa_avg, started_at, ended_at "
+                    "FROM sessions WHERE user_id = ? ORDER BY id DESC LIMIT 40",
+                    (user_id,),
+                )
+            ]
+        stats = _hub_stats(session_rows)
+        slip_count = sum(int(e.get("count") or 0) for e in errors)
         return {
             "user": dict(user) if user else None,
             "sessions": n_sessions,
             "brief": self.build_brief(user_id),
             "errors": errors,
             "vocab": vocab,
+            "slip_count": slip_count,
+            **stats,
         }
+
+    def shadow_prompts(self, user_id: int, *, limit: int = 8) -> list[dict[str, Any]]:
+        from app.services.shadow import merge_prompts
+
+        with self._lock:
+            slips = [
+                dict(r)
+                for r in self._conn.execute(
+                    "SELECT original, note FROM errors "
+                    "WHERE user_id = ? AND kind = 'pronunciation' "
+                    "ORDER BY count DESC, last_seen_at DESC LIMIT ?",
+                    (user_id, limit),
+                )
+            ]
+        return merge_prompts(slips, limit=limit)
 
 
 _memory: MemoryService | None = None

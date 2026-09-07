@@ -1,7 +1,7 @@
 # context.md — Memoria de conversación y decisiones
 
 Documento vivo. Resume lo hablado y decidido sobre **Eloquence**.  
-Última actualización: **2026-09-07** — session UX (chip, log, recap).
+Última actualización: **2026-09-07** — Hub con orbe + Listen & Repeat con coaching.
 
 ---
 
@@ -48,7 +48,7 @@ Documento vivo. Resume lo hablado y decidido sobre **Eloquence**.
 | 3 | Frontend voz + Studio Nocturne | **Hecha** |
 | 4a | Canal dual + Coach notes | **Hecha** |
 | 4b | SQLite (brief + ingest de turnos) | **Hecha** |
-| 4c | Shadowing | Pendiente |
+| 4c | Shadowing | **Hecha** |
 
 ---
 
@@ -62,7 +62,7 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 
 - `:5173` = app de producto. `:8000/` = demo HTML Fase 2.
 - Vite proxy: `/ws` y `/api` → `:8000`.
-- Flujo: escenario → Start Session → habla → 1.5 s silencio → tutor → Coach notes (log por turno). End → recap local (duración, turnos, slips) → Start Session. Esc interrumpe.
+- Flujo: **Hub** → escenario → Start Session → habla → 1.5 s silencio → tutor → Coach notes. End → recap → Hub o Start. **Listen & Repeat** (Kokoro + Whisper) desde Hub o un slip de pronunciación. Esc interrumpe.
 
 ---
 
@@ -86,7 +86,9 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 - **U:** Night = mismo chrome que Gold (anillos, Plus Jakarta, orbe más grande); escenarios **vinculantes**.
 - **V:** README, arquitectura y este context alineados con el código.
 - **W:** Rebrand a **Eloquence** (wordmark de una palabra, sin sufijo AI). SQLite sigue en `data/elevate.db`. Eval Gemma vs Llama en Ollama (ver §11).
-- **X:** Session UX: chip de escenario en topbar, log acumulado de Coach notes, recap al End (sin Hub, score, PDF ni replay).
+- **X:** Session UX: chip de escenario en topbar, log acumulado de Coach notes, recap al End (sin score, PDF ni replay).
+- **Y:** Hub (métricas SQLite + escenarios + Start Session) y Shadowing Listen & Repeat (`/api/tts`, `/api/shadow/*`).
+- **Z:** El orbe vive también en Hub (reposo) y en Listen & Repeat (reacciona a Listen/Repeat). Escenarios = *session focus* (pills), no acciones. Escala tipográfica con mínimo 12 px. Shadow añade significado en español (`/api/shadow/gloss` vía Ollama), Prev/Next y **cómo corregir** la fonética (reglas para hispanohablantes en `app/services/shadow.py`).
 
 ---
 
@@ -128,6 +130,16 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 Misma topbar, mismas fuentes (Plus Jakarta + JetBrains Mono), mismos ticks alrededor del orbe. Toggle luna/sol en `localStorage` (`eloquence-theme`; still reads legacy `elevate-theme` once).
 
 Fuentes de diseño: `ElevateAI Desing/` (gold standard, night standard, Orb 2, Obr Nightmode, mobile).
+
+**Layout escritorio (2026-09-07).** Hub y Shadow usan `.studio-shell` + grid `hero | panel`
+(2 columnas ≥1024 px, 1180 px máx, colapsa a una columna por debajo). El hero lleva orbe +
+saludo + CTA; el panel lleva focus/progress/memoria (Hub) o corrección/cola (Shadow).
+Los escenarios son una **lista**, no pills: envolvían 3+2 y se veía desordenado.
+Atmósfera: grano `feTurbulence` **inline** (antes se descargaba de `transparenttextures.com`,
+así que offline la app se veía plana), bloom ámbar y vignette en `.studio-shell::before/::after`,
+`ZenParticles` ahora en las tres pantallas.
+Tipografía: los tokens `--fs-*` suben un paso en `@media (min-width: 1280px)` — 16 px de body
+es tamaño de teléfono en un monitor de 1440 px.
 
 ---
 

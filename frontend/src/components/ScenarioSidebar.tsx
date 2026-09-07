@@ -61,9 +61,9 @@ export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props)
         {/* Header */}
         <div style={{ padding: '20px 16px 10px' }}>
           <p style={{
-            fontSize: 10,
+            fontSize: 'var(--fs-overline)',
             fontWeight: 600,
-            letterSpacing: '0.1em',
+            letterSpacing: '0.12em',
             textTransform: 'uppercase',
             color: 'var(--accent)',
           }}>
@@ -106,7 +106,7 @@ export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props)
                 <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{s.emoji}</span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{
-                    fontSize: 13,
+                    fontSize: 'var(--fs-body-sm)',
                     fontWeight: isActive ? 600 : 400,
                     color: isActive ? 'var(--text)' : 'var(--text-muted)',
                     whiteSpace: 'nowrap',
@@ -115,7 +115,7 @@ export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props)
                   }}>
                     {s.title}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 1 }}>
+                  <div style={{ fontSize: 'var(--fs-overline)', color: 'var(--text-subtle)', marginTop: 2 }}>
                     {s.sub} · {s.level}
                   </div>
                 </div>
@@ -137,14 +137,14 @@ export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props)
 
         {/* Footer */}
         <div style={{ padding: '12px 16px 20px', borderTop: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, color: 'var(--text-subtle)', marginBottom: 10 }}>
+          <div style={{ fontSize: 'var(--fs-overline)', color: 'var(--text-subtle)', marginBottom: 10 }}>
             Level: <span style={{ color: 'var(--accent)' }}>B2</span>
             <span style={{ marginLeft: 8, color: 'var(--text-subtle)' }}>· Streak 7d 🔥</span>
           </div>
           <button
             onClick={onClose}
             style={{
-              fontSize: 11,
+              fontSize: 'var(--fs-body-sm)',
               color: 'var(--text-subtle)',
               background: 'none',
               border: 'none',

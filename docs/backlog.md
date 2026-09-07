@@ -21,12 +21,15 @@ Ideas y deudas técnicas para más adelante (no bloquean Fase 3 UI).
 
 - [x] Canal dual SPEAK / FEEDBACK → TTS limpio + sidebar Coach notes.
 - [x] Memoria de errores / vocabulario C1 entre sesiones (SQLite `data/elevate.db` + `/api/memory`).
-- [ ] Shadowing “Escucha y Repite”.
+- [x] Shadowing “Escucha y Repite” (Hub + Listen & Repeat + practice desde pronunciación).
 
 ## Producto / UI
 
-- [x] Session chip (escenario visible), log de Coach notes por turno, recap al End (sin score ni Hub).
+- [x] Session chip (escenario visible), log de Coach notes por turno, recap al End (sin score).
+- [x] **Hub**: orbe en reposo, focus pills, CTA Start Session + Listen & Repeat, last session, slips/vocab.
+- [x] Escala tipográfica (`--fs-*`, mínimo 12 px) aplicada en Hub / Shadow / Coach notes.
+- [x] **Layout escritorio**: Hub y Shadow en grid hero + panel (2 col ≥1024 px), focus como lista en vez de pills que envuelven 3+2, step-up tipográfico ≥1280 px, grano SVG local + bloom/vignette (`.studio-shell`).
 - [ ] Tipografía brand definitiva (Syne / Outfit / Geist).
-- [ ] **Hub / Dashboard**: escenarios C1, métricas diarias, progreso, CTA “Start Call” (después del MVP Session Active).
+- [ ] **Themes tipo VS Code**: hoy `data-theme` sólo tiene gold/night; falta picker + más paletas.
 - [ ] LevelSelector C1·C2·Pro cableado a system prompt / opciones Ollama.
 - [ ] Tema night toggle (tokens Booth night).

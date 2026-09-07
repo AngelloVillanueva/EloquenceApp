@@ -30,7 +30,7 @@ El sistema practica **inglés B2** (claro, profesional cotidiano) y estira con s
 1. **Inmersión conversacional** — 100% inglés por defecto; español solo si el usuario lo pide o se atasca.
 2. **Feedback no disruptivo** — correcciones gramaticales, de phrasing y de pronunciación llegan como **metadatos JSON** a una sidebar, sin interrumpir el flujo oral.
 3. **Escenarios vinculantes** — Free Conversation, Job Interview, Architecture Defense, Negotiation, Vocabulary. El `CONFIG` inyecta un bloque `[SCENARIO]` al final del prompt; cambiar de escenario limpia el historial del WS.
-4. **Shadowing (“Escucha y Repite”)** — pendiente (Fase 4c).
+4. **Shadowing (“Escucha y Repite”)** — Hub o slip de pronunciación; Kokoro reproduce, Whisper marca palabras, y `shadow.py` explica **cómo** corregir cada sonido (reglas de transferencia español→inglés) con el significado en español.
 5. **Memoria activa** — SQLite guarda turnos, slips y vocab; la app inyecta un *memory brief* al abrir sesión.
 
 Pedagógicamente, el diseño separa **canal hablado** (corto, natural, 1–3 párrafos) de **canal analítico** (JSON estructurado). Así el oído practica fluidez mientras la vista recibe corrección de precisión.
@@ -44,7 +44,7 @@ Pedagógicamente, el diseño separa **canal hablado** (corto, natural, 1–3 pá
 | **3** | Frontend Web Audio / UI React | **Hecha** (`frontend/` Vite+React; VAD energía ~1.5 s; Studio Nocturne gold/night) |
 | **4a** | Canal dual SPEAK/FEEDBACK + Coach notes | **Hecha** (`dual_channel.py` + panel UI) |
 | **4b** | Memoria SQLite entre sesiones | **Hecha** (`app/services/memory.py`, `/api/memory`, brief en el prompt) |
-| **4c** | Shadowing | Pendiente |
+| **4c** | Shadowing | **Hecha** (`/api/tts`, `/api/shadow/prompts`, `/api/shadow/evaluate`) |
 
 **Cómo se corre hoy:** backend `uvicorn` en `:8000` + frontend `npm run dev` en `:5173`. La ruta `:8000/` sigue sirviendo la demo HTML de Fase 2; la app de producto es `:5173`.
 

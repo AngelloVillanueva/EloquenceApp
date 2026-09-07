@@ -19,7 +19,7 @@ export function SessionChip({ title, sub }: Props) {
       <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
         <span
           style={{
-            fontSize: 13,
+            fontSize: 'var(--fs-body-sm)',
             fontWeight: 600,
             color: 'var(--text)',
             letterSpacing: '-0.01em',
@@ -33,7 +33,7 @@ export function SessionChip({ title, sub }: Props) {
         <span
           className="session-chip-sub"
           style={{
-            fontSize: 11,
+            fontSize: 'var(--fs-overline)',
             color: 'var(--text-subtle)',
             letterSpacing: '0.02em',
             whiteSpace: 'nowrap',
