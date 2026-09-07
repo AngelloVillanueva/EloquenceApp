@@ -25,6 +25,7 @@ Ideas y deudas técnicas para más adelante (no bloquean Fase 3 UI).
 
 ## Producto / UI
 
+- [x] Session chip (escenario visible), log de Coach notes por turno, recap al End (sin score ni Hub).
 - [ ] Tipografía brand definitiva (Syne / Outfit / Geist).
 - [ ] **Hub / Dashboard**: escenarios C1, métricas diarias, progreso, CTA “Start Call” (después del MVP Session Active).
 - [ ] LevelSelector C1·C2·Pro cableado a system prompt / opciones Ollama.

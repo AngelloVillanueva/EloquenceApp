@@ -43,7 +43,7 @@ export function useAudioPlayback(): UseAudioPlaybackReturn {
     if (float32.length === 0) return
 
     const buf = ctx.createBuffer(1, float32.length, sr)
-    buf.copyToChannel(float32, 0)
+    buf.getChannelData(0).set(float32)
 
     const src = ctx.createBufferSource()
     src.buffer = buf

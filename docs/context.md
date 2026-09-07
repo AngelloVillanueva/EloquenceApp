@@ -1,7 +1,7 @@
 # context.md — Memoria de conversación y decisiones
 
 Documento vivo. Resume lo hablado y decidido sobre **Eloquence**.  
-Última actualización: **2026-09-04** — rebrand Eloquence; eval Gemma vs Llama.
+Última actualización: **2026-09-07** — session UX (chip, log, recap).
 
 ---
 
@@ -62,7 +62,7 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 
 - `:5173` = app de producto. `:8000/` = demo HTML Fase 2.
 - Vite proxy: `/ws` y `/api` → `:8000`.
-- Flujo: escenario → Start Session → habla → 1.5 s silencio → tutor → Coach notes. Esc interrumpe.
+- Flujo: escenario → Start Session → habla → 1.5 s silencio → tutor → Coach notes (log por turno). End → recap local (duración, turnos, slips) → Start Session. Esc interrumpe.
 
 ---
 
@@ -86,6 +86,7 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 - **U:** Night = mismo chrome que Gold (anillos, Plus Jakarta, orbe más grande); escenarios **vinculantes**.
 - **V:** README, arquitectura y este context alineados con el código.
 - **W:** Rebrand a **Eloquence** (wordmark de una palabra, sin sufijo AI). SQLite sigue en `data/elevate.db`. Eval Gemma vs Llama en Ollama (ver §11).
+- **X:** Session UX: chip de escenario en topbar, log acumulado de Coach notes, recap al End (sin Hub, score, PDF ni replay).
 
 ---
 

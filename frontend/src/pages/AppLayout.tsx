@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { BrandMark } from '../components/BrandMark'
-import { FeedbackPanel } from '../components/FeedbackPanel'
+import { FeedbackPanel, slipCount } from '../components/FeedbackPanel'
 import { GrainOverlay } from '../components/GrainOverlay'
 import { InterruptButton } from '../components/InterruptButton'
 import { LiveTranscriptBox } from '../components/LiveTranscriptBox'
 import { SCENARIOS, ScenarioSidebar } from '../components/ScenarioSidebar'
+import { SessionChip } from '../components/SessionChip'
 import { SessionTimer } from '../components/SessionTimer'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { TtfaBadge } from '../components/TtfaBadge'
@@ -54,6 +55,13 @@ export function AppLayout() {
   )
   const [scenario, setScenario] = useState('free')
   const [sessionStarted, setSessionStarted] = useState(false)
+  const [recap, setRecap] = useState<{
+    durationS: number
+    turns: number
+    slips: number
+    scenario: string
+  } | null>(null)
+  const sessionStartedAt = useRef<number | null>(null)
 
   const playback = useAudioPlayback()
 
@@ -102,7 +110,9 @@ export function AppLayout() {
   const isListening  = mic.status === 'capturing' && !isProcessing
   const displayState = isListening ? 'listening' as const : ws.orbState
 
-  const scenarioLabel = SCENARIOS.find(s => s.id === scenario)?.title ?? 'Scenario'
+  const scenarioMeta = SCENARIOS.find(s => s.id === scenario)
+  const scenarioLabel = scenarioMeta?.title ?? 'Scenario'
+  const scenarioSub = scenarioMeta?.sub ?? ''
 
   const handleScenario = useCallback((id: string) => {
     setScenario(id)
@@ -112,6 +122,8 @@ export function AppLayout() {
   }, [sessionStarted, ws])
 
   const handleStart = useCallback(async () => {
+    setRecap(null)
+    sessionStartedAt.current = Date.now()
     setSessionStarted(true)
     ws.connect({ scenario })
     await mic.start()
@@ -124,11 +136,18 @@ export function AppLayout() {
   }, [playback, ws])
 
   const handleEnd = useCallback(() => {
+    const durationS = sessionStartedAt.current
+      ? Math.round((Date.now() - sessionStartedAt.current) / 1000)
+      : 0
+    const turns = ws.transcript.filter((l) => l.role === 'user').length
+    const slips = slipCount(ws.feedbackLog)
     playback.stop()
     mic.stop()
     ws.disconnect()
     setSessionStarted(false)
-  }, [playback, mic, ws])
+    sessionStartedAt.current = null
+    setRecap({ durationS, turns, slips, scenario: scenarioLabel })
+  }, [playback, mic, ws, scenarioLabel])
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
@@ -159,26 +178,26 @@ export function AppLayout() {
           </button>
 
           <BrandMark />
-
-          <div className="scenario-label" style={{
-            fontSize: 13,
-            color: 'var(--text-subtle)',
-            display: 'flex', alignItems: 'center', gap: 8,
-            fontFamily: 'var(--font-mono)',
-            letterSpacing: '0.04em',
-          }}>
-            <span style={{ color: 'var(--border)' }}>|</span>
-            <span style={{ color: 'var(--accent)', opacity: 0.9 }}>{scenarioLabel}</span>
-          </div>
+          <SessionChip title={scenarioLabel} sub={scenarioSub} />
         </div>
 
-        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+        <div className="session-timer-slot">
           <SessionTimer running={isConnected} orbState={displayState} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <TtfaBadge ttfa={ws.ttfa} />
           <ThemeToggle />
+          {sessionStarted && (
+            <button
+              type="button"
+              className="btn-end"
+              onClick={handleEnd}
+              title="End session"
+            >
+              End
+            </button>
+          )}
           <InterruptButton onInterrupt={handleInterrupt} active={isProcessing} />
         </div>
       </header>
@@ -192,7 +211,7 @@ export function AppLayout() {
         />
 
         <FeedbackPanel
-          feedback={ws.feedback}
+          log={ws.feedbackLog}
           open={feedbackOpen}
           onToggle={() => setFeedbackOpen(v => !v)}
         />
@@ -254,7 +273,7 @@ export function AppLayout() {
               </p>
             </div>
 
-            {!sessionStarted && (
+            {!sessionStarted && !recap && (
               <button
                 className="btn-start"
                 style={{ marginTop: 28 }}
@@ -264,6 +283,63 @@ export function AppLayout() {
                   ? 'Connecting…'
                   : 'Start Session'}
               </button>
+            )}
+
+            {!sessionStarted && recap && (
+              <div
+                className="animate-fade-in"
+                style={{
+                  marginTop: 28,
+                  width: 'min(320px, calc(100vw - 48px))',
+                  padding: '20px 22px',
+                  borderRadius: 14,
+                  border: '1px solid var(--border)',
+                  background: 'var(--surface)',
+                  textAlign: 'center',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color: 'var(--accent)',
+                    marginBottom: 8,
+                  }}
+                >
+                  Session closed
+                </p>
+                <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginBottom: 14 }}>
+                  {recap.scenario}
+                </p>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 12,
+                    letterSpacing: '0.04em',
+                    color: 'var(--text-subtle)',
+                    marginBottom: 18,
+                  }}
+                >
+                  <span>
+                    {String(Math.floor(recap.durationS / 60)).padStart(2, '0')}:
+                    {String(recap.durationS % 60).padStart(2, '0')}
+                  </span>
+                  <span>
+                    {recap.turns} {recap.turns === 1 ? 'turn' : 'turns'}
+                  </span>
+                  <span>
+                    {recap.slips} {recap.slips === 1 ? 'slip' : 'slips'}
+                  </span>
+                </div>
+                <button className="btn-start" onClick={() => void handleStart()}>
+                  Start Session
+                </button>
+              </div>
             )}
 
             {sessionStarted && ws.transcript.length === 0 && (
@@ -295,25 +371,6 @@ export function AppLayout() {
                   </p>
                 )}
               </div>
-            )}
-
-            {sessionStarted && (
-              <button
-                onClick={handleEnd}
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-subtle)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                  marginTop: 8,
-                  textDecoration: 'underline',
-                  textUnderlineOffset: 3,
-                }}
-              >
-                End session
-              </button>
             )}
 
             {mic.error && (

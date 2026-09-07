@@ -165,6 +165,37 @@ html, body, #root {
   background: var(--surface);
 }
 
+.session-chip {
+  max-width: min(280px, 30vw);
+}
+
+.session-timer-slot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.btn-end {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-subtle);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.btn-end:hover {
+  color: var(--text);
+  border-color: var(--border-accent);
+  background: var(--surface);
+}
+
 /* ─────────────── Orb ─────────────── */
 .orb-stage {
   position: relative;
@@ -345,7 +376,9 @@ html, body, #root {
 @media (max-width: 640px) {
   html, body, #root { overflow: auto; }
   .studio-topbar { padding: 0 16px; }
-  .scenario-label { display: none; }
+  .session-chip { max-width: 42vw; }
+  .session-chip-sub { display: none; }
+  .session-timer-slot { display: none; }
   .transcript-card {
     padding: 16px 18px;
     max-height: 168px;

@@ -9,9 +9,15 @@ export interface FeedbackPayload {
   notes: string
 }
 
+export interface FeedbackLogEntry {
+  id: string
+  at: number
+  payload: FeedbackPayload
+}
+
 export type WsServerEvent =
   | { type: 'READY'; session_id: string; state: OrbState }
-  | { type: 'STATE'; state: OrbState }
+  | { type: 'STATE'; state: OrbState | 'transcribing' }
   | { type: 'TRANSCRIPT'; role: 'user' | 'assistant'; text: string }
   | { type: 'TOKEN'; delta?: string; text?: string }
   | { type: 'SENTENCE'; text: string }

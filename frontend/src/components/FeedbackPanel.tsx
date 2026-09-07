@@ -1,7 +1,8 @@
-import type { FeedbackPayload } from '../types/ws'
+import { useEffect, useRef, type ReactNode } from 'react'
+import type { FeedbackLogEntry, FeedbackPayload } from '../types/ws'
 
 interface Props {
-  feedback: FeedbackPayload | null
+  log: FeedbackLogEntry[]
   open: boolean
   onToggle: () => void
 }
@@ -11,18 +12,20 @@ function Item({
   children,
 }: {
   label: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{
-        fontSize: 10,
-        fontWeight: 600,
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
-        color: 'var(--accent)',
-        marginBottom: 6,
-      }}>
+    <div style={{ marginBottom: 10 }}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'var(--accent)',
+          marginBottom: 6,
+        }}
+      >
         {label}
       </div>
       {children}
@@ -30,32 +33,142 @@ function Item({
   )
 }
 
-function Card({ children }: { children: React.ReactNode }) {
+function Card({ children }: { children: ReactNode }) {
   return (
-    <div style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: 10,
-      padding: '10px 12px',
-      marginBottom: 6,
-      fontSize: 13,
-      lineHeight: 1.45,
-      color: 'var(--text-muted)',
-    }}>
+    <div
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '10px 12px',
+        marginBottom: 6,
+        fontSize: 13,
+        lineHeight: 1.45,
+        color: 'var(--text-muted)',
+      }}
+    >
       {children}
     </div>
   )
 }
 
-export function FeedbackPanel({ feedback, open, onToggle }: Props) {
-  const empty =
-    !feedback ||
-    (
-      feedback.grammar.length === 0 &&
-      feedback.phrasing.length === 0 &&
-      feedback.pronunciation.length === 0 &&
-      !feedback.notes
-    )
+function TurnBlock({ entry, index }: { entry: FeedbackLogEntry; index: number }) {
+  const fb = entry.payload
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {index > 0 && (
+        <div
+          style={{
+            height: 1,
+            margin: '0 0 14px',
+            background: 'linear-gradient(90deg, transparent, var(--border), transparent)',
+          }}
+        />
+      )}
+      <p
+        style={{
+          fontSize: 10,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--text-subtle)',
+          marginBottom: 10,
+        }}
+      >
+        Turn {index + 1}
+      </p>
+
+      {fb.grammar.length > 0 && (
+        <Item label="Grammar">
+          {fb.grammar.map((g, i) => (
+            <Card key={i}>
+              <div
+                style={{
+                  color: 'var(--text-subtle)',
+                  textDecoration: 'line-through',
+                  marginBottom: 4,
+                }}
+              >
+                {String((g as { original?: string }).original ?? '')}
+              </div>
+              <div style={{ color: 'var(--text)' }}>
+                {(g as { correction?: string }).correction ?? ''}
+              </div>
+              {(g as { note?: string }).note && (
+                <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-subtle)' }}>
+                  {(g as { note?: string }).note}
+                </div>
+              )}
+            </Card>
+          ))}
+        </Item>
+      )}
+
+      {fb.phrasing.length > 0 && (
+        <Item label="Phrasing">
+          {fb.phrasing.map((p, i) => (
+            <Card key={i}>
+              <div style={{ color: 'var(--text-subtle)', marginBottom: 4 }}>
+                {String((p as { original?: string }).original ?? '')}
+              </div>
+              <div style={{ color: 'var(--accent-bright, var(--accent))' }}>
+                → {(p as { upgrade?: string }).upgrade ?? ''}
+              </div>
+              {(p as { note?: string }).note && (
+                <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-subtle)' }}>
+                  {(p as { note?: string }).note}
+                </div>
+              )}
+            </Card>
+          ))}
+        </Item>
+      )}
+
+      {fb.pronunciation.length > 0 && (
+        <Item label="Pronunciation">
+          {fb.pronunciation.map((p, i) => (
+            <Card key={i}>
+              <strong style={{ color: 'var(--text)' }}>
+                {(p as { word?: string }).word ?? ''}
+              </strong>
+              {(p as { tip?: string }).tip && (
+                <div style={{ marginTop: 4 }}>{(p as { tip?: string }).tip}</div>
+              )}
+            </Card>
+          ))}
+        </Item>
+      )}
+
+      {fb.notes?.trim() && (
+        <p
+          style={{
+            fontSize: 13,
+            color: 'var(--text-subtle)',
+            lineHeight: 1.45,
+            marginTop: 4,
+          }}
+        >
+          {fb.notes}
+        </p>
+      )}
+    </div>
+  )
+}
+
+export function slipCount(log: FeedbackLogEntry[]): number {
+  return log.reduce((n, e) => {
+    const fb: FeedbackPayload = e.payload
+    return n + fb.grammar.length + fb.phrasing.length + fb.pronunciation.length
+  }, 0)
+}
+
+export function FeedbackPanel({ log, open, onToggle }: Props) {
+  const endRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [log])
+
+  const empty = log.length === 0
 
   return (
     <>
@@ -82,7 +195,7 @@ export function FeedbackPanel({ feedback, open, onToggle }: Props) {
           transition: 'right 0.28s cubic-bezier(0.22,1,0.36,1)',
         }}
       >
-        {open ? 'Hide notes' : 'Coach notes'}
+        {open ? 'Hide notes' : log.length > 0 ? `Coach notes · ${log.length}` : 'Coach notes'}
       </button>
 
       <aside
@@ -103,13 +216,15 @@ export function FeedbackPanel({ feedback, open, onToggle }: Props) {
         }}
       >
         <div style={{ padding: '16px 16px 10px' }}>
-          <p style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--accent)',
-          }}>
+          <p
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'var(--accent)',
+            }}
+          >
             Coach notes
           </p>
           <p style={{ fontSize: 12, color: 'var(--text-subtle)', marginTop: 4 }}>
@@ -124,67 +239,10 @@ export function FeedbackPanel({ feedback, open, onToggle }: Props) {
               After each turn, grammar, phrasing upgrades, and pronunciation tips appear here.
             </p>
           )}
-
-          {feedback && feedback.grammar.length > 0 && (
-            <Item label="Grammar">
-              {feedback.grammar.map((g, i) => (
-                <Card key={i}>
-                  <div style={{ color: 'var(--text-subtle)', textDecoration: 'line-through', marginBottom: 4 }}>
-                    {String((g as { original?: string }).original ?? '')}
-                  </div>
-                  <div style={{ color: 'var(--text)' }}>
-                    {(g as { correction?: string }).correction ?? ''}
-                  </div>
-                  {(g as { note?: string }).note && (
-                    <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-subtle)' }}>
-                      {(g as { note?: string }).note}
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </Item>
-          )}
-
-          {feedback && feedback.phrasing.length > 0 && (
-                <Item label="Phrasing">
-              {feedback.phrasing.map((p, i) => (
-                <Card key={i}>
-                  <div style={{ color: 'var(--text-subtle)', marginBottom: 4 }}>
-                    {String((p as { original?: string }).original ?? '')}
-                  </div>
-                  <div style={{ color: 'var(--accent-bright, var(--accent))' }}>
-                    → {(p as { upgrade?: string }).upgrade ?? ''}
-                  </div>
-                  {(p as { note?: string }).note && (
-                    <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-subtle)' }}>
-                      {(p as { note?: string }).note}
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </Item>
-          )}
-
-          {feedback && feedback.pronunciation.length > 0 && (
-            <Item label="Pronunciation">
-              {feedback.pronunciation.map((p, i) => (
-                <Card key={i}>
-                  <strong style={{ color: 'var(--text)' }}>
-                    {(p as { word?: string }).word ?? ''}
-                  </strong>
-                  {(p as { tip?: string }).tip && (
-                    <div style={{ marginTop: 4 }}>{(p as { tip?: string }).tip}</div>
-                  )}
-                </Card>
-              ))}
-            </Item>
-          )}
-
-          {feedback?.notes && (
-            <Item label="Note">
-              <Card>{feedback.notes}</Card>
-            </Item>
-          )}
+          {log.map((entry, i) => (
+            <TurnBlock key={entry.id} entry={entry} index={i} />
+          ))}
+          <div ref={endRef} />
         </div>
       </aside>
     </>

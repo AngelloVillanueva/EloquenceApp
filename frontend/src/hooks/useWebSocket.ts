@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
+  FeedbackLogEntry,
   FeedbackPayload,
   OrbState,
   TranscriptLine,
   TurnTimings,
   WsServerEvent,
 } from '../types/ws'
+
+function hasFeedbackContent(fb: FeedbackPayload): boolean {
+  return (
+    fb.grammar.length > 0 ||
+    fb.phrasing.length > 0 ||
+    fb.pronunciation.length > 0 ||
+    Boolean(fb.notes?.trim())
+  )
+}
 
 /** Prefer Vite proxy (/ws → :8000) when on same host; override with VITE_WS_URL. */
 const WS_URL =
@@ -26,6 +36,7 @@ interface UseWebSocketReturn {
   orbState: OrbState
   transcript: TranscriptLine[]
   feedback: FeedbackPayload | null
+  feedbackLog: FeedbackLogEntry[]
   ttfa: number | null
   connect: (config?: { scenario?: string }) => void
   sendConfig: (config: { scenario: string }) => void
@@ -45,6 +56,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
   const [orbState, setOrbState] = useState<OrbState>('idle')
   const [transcript, setTranscript] = useState<TranscriptLine[]>([])
   const [feedback, setFeedback] = useState<FeedbackPayload | null>(null)
+  const [feedbackLog, setFeedbackLog] = useState<FeedbackLogEntry[]>([])
   const [ttfa, setTtfa] = useState<number | null>(null)
 
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -73,6 +85,12 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
         break
       case 'FEEDBACK':
         setFeedback(msg.feedback)
+        if (hasFeedbackContent(msg.feedback)) {
+          setFeedbackLog((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), at: Date.now(), payload: msg.feedback },
+          ])
+        }
         break
       case 'AUDIO_META':
         optsRef.current.onAudioMeta?.(msg.sample_rate)
@@ -97,6 +115,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     setStatus('connecting')
     setTranscript([])
     setFeedback(null)
+    setFeedbackLog([])
     setTtfa(null)
 
     const ws = new WebSocket(WS_URL)
@@ -134,6 +153,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
   const sendConfig = useCallback((config: { scenario: string }) => {
     setTranscript([])
     setFeedback(null)
+    setFeedbackLog([])
     sendJson({ type: 'CONFIG', sample_rate: 16000, scenario: config.scenario })
   }, [sendJson])
 
@@ -153,6 +173,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     orbState,
     transcript,
     feedback,
+    feedbackLog,
     ttfa,
     connect,
     sendConfig,
