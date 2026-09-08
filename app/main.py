@@ -151,11 +151,18 @@ def create_app() -> FastAPI:
         user_id = mem.ensure_default_user()
         return mem.snapshot(user_id)
 
-    @app.get("/api/shadow/prompts")
-    def shadow_prompts() -> dict[str, Any]:
+    @app.patch("/api/memory/level")
+    def patch_memory_level(payload: dict[str, Any]) -> dict[str, Any]:
         mem = get_memory()
         user_id = mem.ensure_default_user()
-        return {"prompts": mem.shadow_prompts(user_id)}
+        level = mem.set_level(user_id, str(payload.get("level") or ""))
+        return {"level": level}
+
+    @app.get("/api/shadow/prompts")
+    def shadow_prompts(level: str | None = None) -> dict[str, Any]:
+        mem = get_memory()
+        user_id = mem.ensure_default_user()
+        return {"prompts": mem.shadow_prompts(user_id, level=level)}
 
     @app.post("/api/shadow/gloss")
     async def shadow_gloss(payload: dict[str, Any]) -> dict[str, Any]:

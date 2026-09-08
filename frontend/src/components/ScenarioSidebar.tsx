@@ -1,17 +1,34 @@
+export type CefrLevel = 'B1' | 'B2' | 'C1'
+
 interface Scenario {
   id: string
   emoji: string
   title: string
   sub: string
+  /** Scenario's own CEFR target (badge). */
   level: string
+  /** Minimum learner CEFR that may pick this scenario. */
+  minLevel: CefrLevel
+}
+
+export const CEFR_LEVELS: { id: CefrLevel; title: string; sub: string }[] = [
+  { id: 'B1', title: 'B1', sub: 'Everyday English · notes in Spanish' },
+  { id: 'B2', title: 'B2', sub: 'Professional everyday · notes in Spanish' },
+  { id: 'C1', title: 'C1', sub: 'Stretch · notes in English' },
+]
+
+const CEFR_RANK: Record<string, number> = { B1: 1, B2: 2, C1: 3 }
+
+export function scenarioOpenAt(minLevel: string, userLevel: string): boolean {
+  return (CEFR_RANK[minLevel] ?? 1) <= (CEFR_RANK[userLevel] ?? 2)
 }
 
 const SCENARIOS: Scenario[] = [
-  { id: 'job',   emoji: '💼', title: 'Job Interview',       sub: 'Professional fluency', level: 'C1' },
-  { id: 'arch',  emoji: '🏛',  title: 'Architecture Defense', sub: 'Technical depth',      level: 'C1' },
-  { id: 'nego',  emoji: '🤝', title: 'Negotiation',          sub: 'Business English',     level: 'C2' },
-  { id: 'free',  emoji: '💬', title: 'Free Conversation',    sub: 'Open practice',        level: 'C1+'},
-  { id: 'vocab', emoji: '📚', title: 'Vocabulary Deep Dive', sub: 'Active recall',        level: 'C1' },
+  { id: 'free',  emoji: '💬', title: 'Free Conversation',    sub: 'Open practice',        level: 'B1+', minLevel: 'B1' },
+  { id: 'vocab', emoji: '📚', title: 'Vocabulary Deep Dive', sub: 'Active recall',        level: 'B1+', minLevel: 'B1' },
+  { id: 'job',   emoji: '💼', title: 'Job Interview',       sub: 'Professional fluency', level: 'B2',  minLevel: 'B2' },
+  { id: 'arch',  emoji: '🏛',  title: 'Architecture Defense', sub: 'Technical depth',      level: 'C1',  minLevel: 'C1' },
+  { id: 'nego',  emoji: '🤝', title: 'Negotiation',          sub: 'Business English',     level: 'C1',  minLevel: 'C1' },
 ]
 
 interface Props {
@@ -19,11 +36,12 @@ interface Props {
   onSelect: (id: string) => void
   onClose: () => void
   visible: boolean
+  userLevel?: string
 }
 
 export { SCENARIOS }
 
-export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props) {
+export function ScenarioSidebar({ selected, onSelect, onClose, visible, userLevel = 'B2' }: Props) {
   return (
     <>
       {/* Backdrop (mobile only) */}
@@ -75,7 +93,7 @@ export function ScenarioSidebar({ selected, onSelect, onClose, visible }: Props)
 
         {/* Scenario list */}
         <nav style={{ padding: '10px 10px', flex: 1 }}>
-          {SCENARIOS.map(s => {
+          {SCENARIOS.filter((s) => scenarioOpenAt(s.minLevel, userLevel)).map(s => {
             const isActive = s.id === selected
             return (
               <button

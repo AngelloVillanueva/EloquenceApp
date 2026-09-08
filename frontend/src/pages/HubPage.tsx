@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrandMark } from '../components/BrandMark'
 import { GrainOverlay } from '../components/GrainOverlay'
-import { SCENARIOS } from '../components/ScenarioSidebar'
+import { CEFR_LEVELS, SCENARIOS, scenarioOpenAt, type CefrLevel } from '../components/ScenarioSidebar'
 import { ThemePicker } from '../components/ThemePicker'
 import { VoiceOrb } from '../components/VoiceOrb'
 import { ZenParticles } from '../components/ZenParticles'
@@ -11,6 +11,8 @@ import type { MemorySnapshot } from '../types/memory'
 interface Props {
   onStart: (scenario: string) => void
   onShadow: (phrase?: string) => void
+  level: string
+  onLevelChange: (level: CefrLevel) => void
 }
 
 function greeting(): string {
@@ -37,7 +39,7 @@ function Stat({ value, label }: { value: string | number; label: string }) {
   )
 }
 
-export function HubPage({ onStart, onShadow }: Props) {
+export function HubPage({ onStart, onShadow, level, onLevelChange }: Props) {
   const orbSize = useOrbSize(208)
   const [selected, setSelected] = useState('free')
   const [snap, setSnap] = useState<MemorySnapshot | null>(null)
@@ -47,16 +49,33 @@ export function HubPage({ onStart, onShadow }: Props) {
     void fetch('/api/memory')
       .then((r) => (r.ok ? r.json() : null))
       .then((data: MemorySnapshot | null) => {
-        if (!cancelled && data) setSnap(data)
+        if (!cancelled && data) {
+          setSnap(data)
+          const stored = data.user?.level
+          if (stored === 'B1' || stored === 'B2' || stored === 'C1') {
+            onLevelChange(stored)
+          }
+        }
       })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [])
+  }, [onLevelChange])
 
   const name = snap?.user?.display_name ?? 'Angello'
-  const level = snap?.user?.level ?? 'B2'
   const last = snap?.last_session
   const focus = SCENARIOS.find((s) => s.id === selected)
+  const visibleScenarios = SCENARIOS.filter((s) => scenarioOpenAt(s.minLevel, level))
+
+  const pickLevel = (next: CefrLevel) => {
+    onLevelChange(next)
+    const stillOpen = SCENARIOS.find((s) => s.id === selected && scenarioOpenAt(s.minLevel, next))
+    if (!stillOpen) setSelected('free')
+    void fetch('/api/memory/level', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ level: next }),
+    }).catch(() => {})
+  }
 
   return (
     <div className="studio-shell">
@@ -113,9 +132,34 @@ export function HubPage({ onStart, onShadow }: Props) {
 
         <aside className="hub-panel">
           <section className="hub-panel-section">
+            <p className="hub-kicker">Level</p>
+            <div className="hub-focus-list" role="radiogroup" aria-label="CEFR level">
+              {CEFR_LEVELS.map((item) => {
+                const active = item.id === level
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    className={active ? 'hub-focus-row hub-focus-row-active' : 'hub-focus-row'}
+                    onClick={() => pickLevel(item.id)}
+                  >
+                    <span className="hub-focus-label">
+                      <span className="hub-focus-title">{item.title}</span>
+                      <span className="hub-focus-sub">{item.sub}</span>
+                    </span>
+                    {active && <span className="hub-focus-dot" />}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          <section className="hub-panel-section">
             <p className="hub-kicker">Session focus</p>
             <div className="hub-focus-list" role="radiogroup" aria-label="Session focus">
-              {SCENARIOS.map((s) => {
+              {visibleScenarios.map((s) => {
                 const active = s.id === selected
                 return (
                   <button

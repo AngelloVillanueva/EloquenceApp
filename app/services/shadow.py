@@ -13,12 +13,95 @@ GLOSS_SYSTEM = (
 )
 
 DEFAULT_PROMPTS: list[dict[str, str]] = [
+    # B1 — everyday
+    {
+        "id": "bank-how-was-day",
+        "text": "How was your day?",
+        "tip": "Was: voiced /z/, not «guas».",
+        "es": "¿Qué tal te fue el día?",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-say-again",
+        "text": "Could you say that again, please?",
+        "tip": "Please: /z/ at the end, not «plis» clipped.",
+        "es": "¿Podrías repetir eso, por favor?",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-follow",
+        "text": "I don't quite follow.",
+        "tip": "Don't: the t is light; quite is one beat.",
+        "es": "No te sigo del todo.",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-running-late",
+        "text": "I'm running a bit late.",
+        "tip": "Running: /ŋ/ nasal, no hard g.",
+        "es": "Voy un poco atrasado.",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-minute-think",
+        "text": "I need a minute to think.",
+        "tip": "Think: tongue between the teeth, not «tink».",
+        "es": "Necesito un minuto para pensar.",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-sounds-good",
+        "text": "That sounds good to me.",
+        "tip": "Sounds: /z/ in the middle, not «saunds».",
+        "es": "Me parece bien.",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-meet-tomorrow",
+        "text": "Can we meet tomorrow morning?",
+        "tip": "Tomorrow: stress on -mor-, not the first syllable.",
+        "es": "¿Podemos vernos mañana por la mañana?",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-thanks-help",
+        "text": "Thanks for your help.",
+        "tip": "Thanks: /θ/ — tongue out, not «tanks».",
+        "es": "Gracias por tu ayuda.",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-what-mean",
+        "text": "What does that mean?",
+        "tip": "Does: /z/, not «dos».",
+        "es": "¿Qué significa eso?",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    {
+        "id": "bank-see-you-later",
+        "text": "See you later.",
+        "tip": "Later: /eɪ/ in the first syllable, flap the t.",
+        "es": "Hasta luego.",
+        "kind": "bank",
+        "cefr": "B1",
+    },
+    # B2 — professional everyday
     {
         "id": "bank-walkthrough",
         "text": "Could you walk me through your thinking?",
         "tip": "Link walk me through — don't pause on each word.",
         "es": "¿Podrías explicarme tu razonamiento paso a paso?",
         "kind": "bank",
+        "cefr": "B2",
     },
     {
         "id": "bank-circle",
@@ -26,6 +109,7 @@ DEFAULT_PROMPTS: list[dict[str, str]] = [
         "tip": "Circle back as one phrase, not two ideas.",
         "es": "Preferiría retomarlo después de la revisión.",
         "kind": "bank",
+        "cefr": "B2",
     },
     {
         "id": "bank-tradeoffs",
@@ -33,6 +117,7 @@ DEFAULT_PROMPTS: list[dict[str, str]] = [
         "tip": "Trade-offs: stress on trade.",
         "es": "Las concesiones se pueden defender.",
         "kind": "bank",
+        "cefr": "B2",
     },
     {
         "id": "bank-elaborate",
@@ -40,6 +125,7 @@ DEFAULT_PROMPTS: list[dict[str, str]] = [
         "tip": "Elaborate: four syllables, stress on lab.",
         "es": "Permíteme profundizar en ese punto.",
         "kind": "bank",
+        "cefr": "B2",
     },
     {
         "id": "bank-pushback",
@@ -47,6 +133,64 @@ DEFAULT_PROMPTS: list[dict[str, str]] = [
         "tip": "Push back — two beats, not 'pushback' as one rush.",
         "es": "Deberíamos cuestionar el cronograma.",
         "kind": "bank",
+        "cefr": "B2",
+    },
+    {
+        "id": "bank-not-sure-agree",
+        "text": "I'm not sure I agree with that.",
+        "tip": "Agree: stress on -gree; with is a light tap.",
+        "es": "No estoy seguro de estar de acuerdo con eso.",
+        "kind": "bank",
+        "cefr": "B2",
+    },
+    {
+        "id": "bank-get-back",
+        "text": "I'll get back to you this afternoon.",
+        "tip": "I'll: one beat. Afternoon: stress on -noon.",
+        "es": "Te respondo esta tarde.",
+        "kind": "bank",
+        "cefr": "B2",
+    },
+    {
+        "id": "bank-intention",
+        "text": "That wasn't my intention.",
+        "tip": "Wasn't: the t is light; intention: stress on -ten-.",
+        "es": "Esa no era mi intención.",
+        "kind": "bank",
+        "cefr": "B2",
+    },
+    # C1 — precise professional
+    {
+        "id": "bank-assumption",
+        "text": "I'd like to push back on that assumption.",
+        "tip": "Assumption: /ʃ/ in -ssump-, stress on -sump-.",
+        "es": "Me gustaría cuestionar esa suposición.",
+        "kind": "bank",
+        "cefr": "C1",
+    },
+    {
+        "id": "bank-constraints",
+        "text": "The constraints are non-negotiable.",
+        "tip": "Constraints: /eɪ/ in -straints. Non-negotiable: don't swallow -tia-.",
+        "es": "Las restricciones no son negociables.",
+        "kind": "bank",
+        "cefr": "C1",
+    },
+    {
+        "id": "bank-table-this",
+        "text": "Let's table this until we have numbers.",
+        "tip": "Table as a verb: one beat, then this.",
+        "es": "Aplacémoslo hasta tener cifras.",
+        "kind": "bank",
+        "cefr": "C1",
+    },
+    {
+        "id": "bank-own-followup",
+        "text": "I'll own the follow-up.",
+        "tip": "I'll own: two beats. Follow-up: stress on follow.",
+        "es": "Yo me encargo del seguimiento.",
+        "kind": "bank",
+        "cefr": "C1",
     },
 ]
 
@@ -213,10 +357,26 @@ def coach_phrase(text: str, *, limit: int = 3) -> list[dict[str, Any]]:
     return out
 
 
+def _bank_fits_level(item_cefr: str, user_level: str) -> bool:
+    """B1 sees B1; B2 sees B1+B2; C1 sees B2+C1."""
+    from app.prompts.tutor_system import normalize_level
+
+    user = normalize_level(user_level)
+    item = (item_cefr or "B2").strip().upper()
+    if item not in ("B1", "B2", "C1"):
+        item = "B2"
+    if user == "B1":
+        return item == "B1"
+    if user == "B2":
+        return item in ("B1", "B2")
+    return item in ("B2", "C1")
+
+
 def merge_prompts(
     pronunciation: list[dict[str, Any]],
     *,
-    limit: int = 8,
+    limit: int = 12,
+    level: str | None = "B2",
 ) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -234,11 +394,14 @@ def merge_prompts(
             "tip": str(item.get("note") or item.get("tip") or "Listen once, then repeat."),
             "es": "",
             "kind": "pronunciation",
+            "cefr": "",
             "coach": coach_phrase(text),
         })
         if len(out) >= limit:
             return out
     for bank in DEFAULT_PROMPTS:
+        if not _bank_fits_level(bank.get("cefr") or "B2", level or "B2"):
+            continue
         key = bank["text"].lower()
         if key in seen:
             continue

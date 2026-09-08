@@ -48,6 +48,7 @@ def test_merge_prompts_prefers_slips() -> None:
     prompts = merge_prompts(
         [{"original": "Eloquence", "note": "Four syllables"}],
         limit=3,
+        level="B2",
     )
     assert prompts[0]["text"] == "Eloquence"
     assert prompts[0]["kind"] == "pronunciation"
@@ -57,10 +58,30 @@ def test_merge_prompts_prefers_slips() -> None:
     assert any(p["kind"] == "bank" and p["es"] for p in prompts)
 
 
+def test_merge_prompts_filters_by_cefr() -> None:
+    b1 = merge_prompts([], limit=12, level="B1")
+    assert b1
+    assert all(p.get("cefr") == "B1" for p in b1)
+    assert all("non-negotiable" not in p["text"].lower() for p in b1)
+    assert all("walk me through" not in p["text"].lower() for p in b1)
+
+    b2 = merge_prompts([], limit=12, level="B2")
+    cefr_b2 = {p.get("cefr") for p in b2}
+    assert "B1" in cefr_b2 and "B2" in cefr_b2
+    assert "C1" not in cefr_b2
+
+    c1 = merge_prompts([], limit=12, level="C1")
+    cefr_c1 = {p.get("cefr") for p in c1}
+    assert "B2" in cefr_c1 and "C1" in cefr_c1
+    assert "B1" not in cefr_c1
+    assert any("non-negotiable" in p["text"].lower() for p in c1)
+
+
 if __name__ == "__main__":
     test_score_repeat_hits()
     test_score_repeat_partial()
     test_coach_word_targets_spanish_transfer()
     test_clean_gloss_strips_noise()
     test_merge_prompts_prefers_slips()
+    test_merge_prompts_filters_by_cefr()
     print("shadow tests OK")

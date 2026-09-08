@@ -11,11 +11,20 @@ from typing import Any
 from fastapi import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
-from app.prompts.tutor_system import SPOKEN_TUTOR_PROMPT, scenario_instruction
+from app.prompts.tutor_system import (
+    clamp_scenario,
+    normalize_level,
+    scenario_instruction,
+    spoken_tutor_prompt,
+)
 from app.services.memory import MemoryService, get_memory
 from app.services.runtime import AppRuntime, get_runtime
 from app.ws.audio_utils import pcm16_bytes_to_float32
-from app.ws.dual_channel import DualChannelSplitter, spoken_only_from_full
+from app.ws.dual_channel import (
+    DualChannelSplitter,
+    spoken_only_from_full,
+    strip_spanish_sentences,
+)
 from app.ws.protocol import ClientEvent, ServerEvent, SessionState, msg
 from app.ws.sentence_buffer import SentenceBuffer
 
@@ -46,17 +55,26 @@ class AudioWsSession:
         self.user_id: int = self.memory.ensure_default_user()
         self.session_id: int | None = None
         self.scenario: str = "free"
+        self.level: str = self.memory.get_level(self.user_id)
         self.ttfa_samples: list[float] = []
-        self._system_prompt: str = SPOKEN_TUTOR_PROMPT
+        self._system_prompt: str = spoken_tutor_prompt(self.level)
 
     def _apply_scenario_prompt(self, scenario: str) -> None:
+        scenario = clamp_scenario(scenario, self.level)
+        self.scenario = scenario
         brief = self.memory.build_brief(self.user_id, scenario=scenario)
         self._system_prompt = (
-            f"{SPOKEN_TUTOR_PROMPT}\n\n"
+            f"{spoken_tutor_prompt(self.level)}\n\n"
             f"[MEMORY BRIEF — do not read aloud]\n{brief}\n\n"
             f"{scenario_instruction(scenario)}\n"
         )
-        logger.info("SQLite session %s scenario=%s\n%s", self.session_id, scenario, brief)
+        logger.info(
+            "SQLite session %s scenario=%s level=%s\n%s",
+            self.session_id,
+            scenario,
+            self.level,
+            brief,
+        )
 
     async def run(self) -> None:
         await self.ws.accept()
@@ -136,7 +154,21 @@ class AudioWsSession:
             sr = int(payload.get("sample_rate", self.sample_rate))
             if sr > 0:
                 self.sample_rate = sr
-            scenario = str(payload.get("scenario") or self.scenario).strip() or "free"
+            if payload.get("level"):
+                self.level = self.memory.set_level(
+                    self.user_id, normalize_level(str(payload.get("level")))
+                )
+            else:
+                self.level = self.memory.get_level(self.user_id)
+            requested = str(payload.get("scenario") or self.scenario).strip() or "free"
+            scenario = clamp_scenario(requested, self.level)
+            if scenario != requested:
+                logger.info(
+                    "Scenario %s not allowed at %s — using %s",
+                    requested,
+                    self.level,
+                    scenario,
+                )
             switched = scenario != self.scenario
             self.scenario = scenario
             if self.session_id is None:
@@ -153,6 +185,7 @@ class AudioWsSession:
                     capture_sample_rate=self.sample_rate,
                     updated=True,
                     scenario=self.scenario,
+                    level=self.level,
                     session_id=self.session_id,
                 )
             )
@@ -277,19 +310,31 @@ class AudioWsSession:
                             msg(ServerEvent.TOKEN, text=speak_delta)
                         )
                         for sentence in sentence_buf.push(speak_delta):
-                            logger.info(
-                                "Sentence buffer flush → TTS queue: %r", sentence[:80]
-                            )
-                            await sentence_queue.put(sentence)
+                            cleaned = strip_spanish_sentences(sentence)
+                            if cleaned != sentence.strip() and sentence.strip():
+                                logger.warning(
+                                    "Dropped Spanish from SPEAK before TTS: %r → %r",
+                                    sentence[:80],
+                                    cleaned[:80],
+                                )
+                            if cleaned:
+                                logger.info(
+                                    "Sentence buffer flush → TTS queue: %r", cleaned[:80]
+                                )
+                                await sentence_queue.put(cleaned)
 
                 leftover_speak = dual.flush()
                 if leftover_speak:
                     for sentence in sentence_buf.push(leftover_speak + "\n"):
-                        await sentence_queue.put(sentence)
+                        cleaned = strip_spanish_sentences(sentence)
+                        if cleaned:
+                            await sentence_queue.put(cleaned)
                 leftover = sentence_buf.flush()
                 if leftover and not self.cancel_event.is_set():
-                    logger.info("Sentence buffer final flush → TTS: %r", leftover[:80])
-                    await sentence_queue.put(leftover)
+                    cleaned = strip_spanish_sentences(leftover)
+                    if cleaned:
+                        logger.info("Sentence buffer final flush → TTS: %r", cleaned[:80])
+                        await sentence_queue.put(cleaned)
 
                 await sentence_queue.put(_SENTINEL)
                 tts_stats = await tts_worker
@@ -307,7 +352,7 @@ class AudioWsSession:
                     return
 
                 raw_reply = "".join(full_reply).strip()
-                reply_text = spoken_only_from_full(raw_reply) or raw_reply
+                reply_text = spoken_only_from_full(raw_reply)
                 timings["total_s"] = time.perf_counter() - t0
 
                 feedback = dual.parse_feedback()

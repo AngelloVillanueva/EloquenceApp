@@ -154,26 +154,44 @@ class MemoryService:
             self._conn.close()
 
     def ensure_default_user(self, display_name: str = "Angello", level: str = "B2") -> int:
+        """Create the single local user if missing. Never overwrite a stored level."""
+        from app.prompts.tutor_system import normalize_level
+
+        level = normalize_level(level)
         with self._lock:
             row = self._conn.execute(
-                "SELECT id, level FROM users ORDER BY id LIMIT 1"
+                "SELECT id FROM users ORDER BY id LIMIT 1"
             ).fetchone()
             if row:
-                uid = int(row["id"])
-                if str(row["level"]) != level:
-                    self._conn.execute(
-                        "UPDATE users SET level = ? WHERE id = ?",
-                        (level, uid),
-                    )
-                    self._conn.commit()
-                    logger.info("Default user level set to %s", level)
-                return uid
+                return int(row["id"])
             cur = self._conn.execute(
                 "INSERT INTO users (display_name, level, created_at) VALUES (?, ?, ?)",
                 (display_name, level, _now()),
             )
             self._conn.commit()
             return int(cur.lastrowid)
+
+    def get_level(self, user_id: int) -> str:
+        from app.prompts.tutor_system import normalize_level
+
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT level FROM users WHERE id = ?", (user_id,)
+            ).fetchone()
+        return normalize_level(row["level"] if row else "B2")
+
+    def set_level(self, user_id: int, level: str) -> str:
+        from app.prompts.tutor_system import normalize_level
+
+        cefr = normalize_level(level)
+        with self._lock:
+            self._conn.execute(
+                "UPDATE users SET level = ? WHERE id = ?",
+                (cefr, user_id),
+            )
+            self._conn.commit()
+        logger.info("User %s level set to %s", user_id, cefr)
+        return cefr
 
     def start_session(self, *, user_id: int, scenario: str) -> int:
         with self._lock:
@@ -382,9 +400,16 @@ class MemoryService:
             **stats,
         }
 
-    def shadow_prompts(self, user_id: int, *, limit: int = 8) -> list[dict[str, Any]]:
+    def shadow_prompts(
+        self,
+        user_id: int,
+        *,
+        limit: int = 12,
+        level: str | None = None,
+    ) -> list[dict[str, Any]]:
         from app.services.shadow import merge_prompts
 
+        cefr = level or self.get_level(user_id)
         with self._lock:
             slips = [
                 dict(r)
@@ -395,7 +420,7 @@ class MemoryService:
                     (user_id, limit),
                 )
             ]
-        return merge_prompts(slips, limit=limit)
+        return merge_prompts(slips, limit=limit, level=cefr)
 
 
 _memory: MemoryService | None = None

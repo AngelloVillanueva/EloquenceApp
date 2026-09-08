@@ -74,9 +74,21 @@ def test_memory_brief_and_upsert(tmp_path: Path) -> None:
     mem.close()
 
 
+def test_ensure_default_user_does_not_clobber_level(tmp_path: Path) -> None:
+    mem = MemoryService(db_path=tmp_path / "elevate.db")
+    uid = mem.ensure_default_user("Angello", "B2")
+    assert mem.set_level(uid, "B1") == "B1"
+    assert mem.ensure_default_user("Angello", "B2") == uid
+    assert mem.get_level(uid) == "B1"
+    assert mem.set_level(uid, "not-a-level") == "B2"
+    mem.close()
+
+
 if __name__ == "__main__":
     import tempfile
 
     with tempfile.TemporaryDirectory() as d:
         test_memory_brief_and_upsert(Path(d))
+    with tempfile.TemporaryDirectory() as d:
+        test_ensure_default_user_does_not_clobber_level(Path(d))
     print("memory tests OK")

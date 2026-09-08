@@ -32,12 +32,14 @@ const STATE_TELEM: Record<string, string> = {
 
 interface AppLayoutProps {
   initialScenario?: string
+  initialLevel?: string
   onBackHub?: () => void
   onOpenShadow?: (phrase: string) => void
 }
 
 export function AppLayout({
   initialScenario = 'free',
+  initialLevel = 'B2',
   onBackHub,
   onOpenShadow,
 }: AppLayoutProps) {
@@ -111,18 +113,18 @@ export function AppLayout({
   const handleScenario = useCallback((id: string) => {
     setScenario(id)
     if (sessionStarted && ws.status === 'connected') {
-      ws.sendConfig({ scenario: id })
+      ws.sendConfig({ scenario: id, level: initialLevel })
     }
-  }, [sessionStarted, ws])
+  }, [sessionStarted, ws, initialLevel])
 
   const handleStart = useCallback(async () => {
     setRecap(null)
     sessionStartedAt.current = Date.now()
     setSessionStarted(true)
-    ws.connect({ scenario })
+    ws.connect({ scenario, level: initialLevel })
     await mic.start()
     ws.setOrbState('listening')
-  }, [ws, mic, scenario])
+  }, [ws, mic, scenario, initialLevel])
 
   const handleInterrupt = useCallback(() => {
     playback.stop()
@@ -224,6 +226,7 @@ export function AppLayout({
           onSelect={handleScenario}
           onClose={() => setSidebarOpen(false)}
           visible={sidebarOpen}
+          userLevel={initialLevel}
         />
 
         <FeedbackPanel

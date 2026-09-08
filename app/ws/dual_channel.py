@@ -156,4 +156,45 @@ def spoken_only_from_full(text: str) -> str:
     """Extract spoken channel from a completed assistant message (for history/UI)."""
     split = DualChannelSplitter()
     speak = split.push(text) + split.flush()
-    return speak.strip() or _SPEAK_RE.sub("", _FEEDBACK_RE.split(text, maxsplit=1)[0]).strip()
+    raw = speak.strip() or _SPEAK_RE.sub("", _FEEDBACK_RE.split(text, maxsplit=1)[0]).strip()
+    return strip_spanish_sentences(raw)
+
+
+_SPANISH_CHARS = re.compile(r"[¿¡ñáéíóúüÁÉÍÓÚÜÑ]")
+_SPANISH_WORDS = re.compile(
+    r"\b(que|por|está|estas|estoy|gracias|cómo|hola|también|porque|"
+    r"para|una|los|las|buenos|días|usted|tú|pero|muy|"
+    r"sí|aquí|ahora|entonces|después)\b",
+    re.IGNORECASE,
+)
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+|\n+")
+
+
+def looks_like_spanish(text: str) -> bool:
+    """True if a spoken fragment is Spanish that Kokoro must not receive."""
+    piece = (text or "").strip()
+    if not piece:
+        return False
+    if _SPANISH_CHARS.search(piece):
+        return True
+    return _SPANISH_WORDS.search(piece) is not None
+
+
+def strip_spanish_sentences(text: str) -> str:
+    """Drop Spanish-looking sentences from SPEAK. Empty if nothing English remains."""
+    raw = (text or "").strip()
+    if not raw:
+        return ""
+    parts = [p.strip() for p in _SENTENCE_SPLIT.split(raw) if p.strip()]
+    if not parts:
+        return "" if looks_like_spanish(raw) else raw
+    kept: list[str] = []
+    dropped = False
+    for part in parts:
+        if looks_like_spanish(part):
+            dropped = True
+            continue
+        kept.append(part)
+    if dropped:
+        logger.warning("Stripped Spanish from SPEAK: %r → %r", raw[:120], " ".join(kept)[:120])
+    return " ".join(kept)

@@ -38,8 +38,8 @@ interface UseWebSocketReturn {
   feedback: FeedbackPayload | null
   feedbackLog: FeedbackLogEntry[]
   ttfa: number | null
-  connect: (config?: { scenario?: string }) => void
-  sendConfig: (config: { scenario: string }) => void
+  connect: (config?: { scenario?: string; level?: string }) => void
+  sendConfig: (config: { scenario: string; level?: string }) => void
   disconnect: () => void
   sendEndTurn: () => void
   sendCancel: () => void
@@ -110,7 +110,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     }
   }, [])
 
-  const connect = useCallback((config?: { scenario?: string }) => {
+  const connect = useCallback((config?: { scenario?: string; level?: string }) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
     setStatus('connecting')
     setTranscript([])
@@ -126,6 +126,7 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
         type: 'CONFIG',
         sample_rate: 16000,
         scenario: config?.scenario ?? 'free',
+        level: config?.level ?? 'B2',
       }))
     }
     ws.onmessage = handleMessage
@@ -150,11 +151,16 @@ export function useWebSocket(opts: UseWebSocketOptions = {}): UseWebSocketReturn
     }
   }, [])
 
-  const sendConfig = useCallback((config: { scenario: string }) => {
+  const sendConfig = useCallback((config: { scenario: string; level?: string }) => {
     setTranscript([])
     setFeedback(null)
     setFeedbackLog([])
-    sendJson({ type: 'CONFIG', sample_rate: 16000, scenario: config.scenario })
+    sendJson({
+      type: 'CONFIG',
+      sample_rate: 16000,
+      scenario: config.scenario,
+      ...(config.level ? { level: config.level } : {}),
+    })
   }, [sendJson])
 
   const sendEndTurn = useCallback(() => sendJson({ type: 'END_TURN' }), [sendJson])

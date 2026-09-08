@@ -386,7 +386,7 @@ export function ShadowPage({ initialPhrase, onBack }: Props) {
                       <span className="hub-focus-label">
                         <span className="hub-focus-title">{p.text}</span>
                         <span className="hub-focus-sub">
-                          {p.kind === 'pronunciation' ? 'De tus notas' : 'Banco C1'}
+                          {p.kind === 'pronunciation' ? 'De tus notas' : (p.cefr ? `Banco ${p.cefr}` : 'Banco')}
                         </span>
                       </span>
                       {active && <span className="hub-focus-dot" />}

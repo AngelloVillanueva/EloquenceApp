@@ -46,6 +46,7 @@ export interface ShadowPrompt {
   /** Spanish meaning: curated for the bank, LLM gloss for your own slips. */
   es?: string
   kind: 'pronunciation' | 'bank' | string
+  cefr?: string
   coach?: ShadowCoach[]
 }
 

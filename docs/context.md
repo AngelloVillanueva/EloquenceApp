@@ -89,6 +89,7 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 - **X:** Session UX: chip de escenario en topbar, log acumulado de Coach notes, recap al End (sin score, PDF ni replay).
 - **Y:** Hub (métricas SQLite + escenarios + Start Session) y Shadowing Listen & Repeat (`/api/tts`, `/api/shadow/*`).
 - **Z:** El orbe vive también en Hub (reposo) y en Listen & Repeat (reacciona a Listen/Repeat). Escenarios = *session focus* (pills), no acciones. Escala tipográfica con mínimo 12 px. Shadow añade significado en español (`/api/shadow/gloss` vía Ollama), Prev/Next y **cómo corregir** la fonética (reglas para hispanohablantes en `app/services/shadow.py`).
+- **AA:** CEFR real (B1/B2/C1). `spoken_tutor_prompt(level)` + `PATCH /api/memory/level`. Banco Listen & Repeat ~22 frases con `cefr`. Guardrail: se recorta español de SPEAK antes de TTS.
 
 ---
 
@@ -99,7 +100,7 @@ Frontend →  cd frontend && npm run dev  →  http://localhost:5173
 3. Canal dual: hablado → TTS; JSON → sidebar (nunca al TTS).
 4. SQLite: solo FastAPI. El LLM nunca ejecuta SQL; recibe un *memory brief*.
 5. Python 3.12; `onnxruntime-gpu==1.20.2`.
-6. Nivel de producto actual: **B2** (no tratar al alumno como C1).
+6. Nivel default **B2**. B1 y B2 reciben Coach notes (`note`/`tip`/`notes`) en español; `<<<SPEAK>>>` es siempre inglés (Kokoro no habla español). C1 recibe notes en inglés. Escenarios: `free`/`vocab` ≥ B1, `job` ≥ B2, `arch`/`nego` ≥ C1.
 7. Fin de turno: **1.5 s** de silencio (dudas y frases incompletas).
 8. UI: Studio Nocturne. Night reutiliza el formato Gold; solo cambian fondo + shader del orbe.
 9. El escenario no es cosmética: instruye al tutor y, al cambiar, resetea el hilo.

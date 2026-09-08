@@ -29,7 +29,6 @@ Ideas y deudas técnicas para más adelante (no bloquean Fase 3 UI).
 - [x] **Hub**: orbe en reposo, focus pills, CTA Start Session + Listen & Repeat, last session, slips/vocab.
 - [x] Escala tipográfica (`--fs-*`, mínimo 12 px) aplicada en Hub / Shadow / Coach notes.
 - [x] **Layout escritorio**: Hub y Shadow en grid hero + panel (2 col ≥1024 px), focus como lista en vez de pills que envuelven 3+2, step-up tipográfico ≥1280 px, grano SVG local + bloom/vignette (`.studio-shell`).
+- [x] **LevelSelector B1·B2·C1**: persistido en SQLite, cableado al system prompt. B1/B2: Coach notes en español; SPEAK siempre inglés. Escenarios filtrados por `minLevel`. Banco Listen & Repeat por CEFR.
 - [ ] Tipografía brand definitiva (Syne / Outfit / Geist).
 - [x] **Themes tipo VS Code**: 5 paletas (Gold, Porcelain Night, Ember, Verdigris, Daylight) + `ThemePicker`, tokens en 2 capas, orbe recoloreado por uniforms, semánticos `--ok/--warn/--danger`.
-- [ ] LevelSelector C1·C2·Pro cableado a system prompt / opciones Ollama.
-- [ ] Tema night toggle (tokens Booth night).
